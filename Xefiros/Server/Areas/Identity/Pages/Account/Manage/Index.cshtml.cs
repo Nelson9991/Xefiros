@@ -23,7 +23,7 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
-        public string Username { get; set; }
+        [Display(Name = "Nombre de usuario")] public string Username { get; set; }
 
         [TempData]
         public string StatusMessage { get; set; }
@@ -33,9 +33,8 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
 
         public class InputModel
         {
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
+            [Required] public string Nombre { get; set; }
+            public string Apellidos { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
@@ -47,7 +46,8 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                Nombre = user.Nombre,
+                Apellidos = user.Apellidos
             };
         }
 
@@ -77,19 +77,16 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
+            if (user.Apellidos != Input.Apellidos || user.Nombre != Input.Nombre)
             {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
-                {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
-                    return RedirectToPage();
-                }
+                user.Nombre = Input.Nombre;
+                user.Apellidos = Input.Apellidos;
+
+                await _userManager.UpdateAsync(user);
             }
 
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your profile has been updated";
+            StatusMessage = "Tu perfil fue actualizado";
             return RedirectToPage();
         }
     }

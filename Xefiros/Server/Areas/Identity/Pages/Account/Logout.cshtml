@@ -1,7 +1,8 @@
 ﻿@page
+@using Microsoft.AspNetCore.Routing
 @model LogoutModel
 @{
-    ViewData["Title"] = "Log out";
+    ViewData["Title"] = "Cerrar Sesión";
 }
 
 <header>
@@ -10,12 +11,16 @@
         if (User.Identity.IsAuthenticated)
         {
             <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
+                <button type="submit" class="nav-link btn btn-link text-dark">Cerrar Sesión</button>
             </form>
         }
         else
         {
-            <p>You have successfully logged out of the application.</p>
+            <p>Ha salido exitosamente de la aplicación</p>
+
+            <div>
+                <a class="btn btn-success" href="~/">Volver a la aplicación</a>
+            </div>
         }
     }
 </header>

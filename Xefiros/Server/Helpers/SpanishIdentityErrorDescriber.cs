@@ -7,11 +7,13 @@ namespace Xefiros.Server.Helpers
 {
     public class SpanishIdentityErrorDescriber : IdentityErrorDescriber
     {
-        private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IStringLocalizer _localizer;
 
-        public SpanishIdentityErrorDescriber(IStringLocalizer<SharedResource> localizer)
+        public SpanishIdentityErrorDescriber(IStringLocalizerFactory factory)
         {
-            _localizer = localizer;
+            var type = typeof(SharedResource);
+            var assemblyName = new AssemblyName(type.GetTypeInfo().Assembly.FullName);
+            _localizer = factory.Create("SharedResource", assemblyName.Name);
         }
 
         public override IdentityError DuplicateEmail(string email)
@@ -22,7 +24,6 @@ namespace Xefiros.Server.Helpers
                 Description = string.Format(_localizer["Email {0} is already taken."], email)
             };
         }
-
         public override IdentityError DefaultError()
         {
             return new IdentityError
@@ -149,7 +150,5 @@ namespace Xefiros.Server.Helpers
                 Description = _localizer["Passwords must have at least one uppercase ('A'-'Z')."]
             };
         }
-
-        // DuplicateUserName, InvalidEmail, DuplicateUserName etc
     }
 }

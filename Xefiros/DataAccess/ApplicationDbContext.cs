@@ -13,5 +13,7 @@ namespace Xefiros.DataAccess
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
         }
+
+        public DbSet<Cliente> Clientes { get; set; }
     }
 }

@@ -127,7 +127,7 @@
     <value>El email {0} ya está tomado</value>
   </data>
   <data name="Email {0} is invalid." xml:space="preserve">
-    <value>El email {0} no es válido</value>
+    <value>El {0} no es válido</value>
   </data>
   <data name="Incorrect password." xml:space="preserve">
     <value>Contraseña incorrecta</value>

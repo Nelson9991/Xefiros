@@ -35,20 +35,21 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
 
         public class InputModel
         {
-            [Required]
+            [Required(ErrorMessage = "La contraseña es requerida")]
             [DataType(DataType.Password)]
-            [Display(Name = "Current password")]
+            [Display(Name = "Contraseña actual")]
             public string OldPassword { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "La contraseña {0} debe tener al menos {2} caracteres y {1} como máximo",
+                MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "New password")]
+            [Display(Name = "Nueva contraseña")]
             public string NewPassword { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm new password")]
-            [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+            [Display(Name = "Confirmar contraseña")]
+            [Compare("NewPassword", ErrorMessage = "La contraseña y la confirmación no son iguales")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -94,7 +95,7 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account.Manage
 
             await _signInManager.RefreshSignInAsync(user);
             _logger.LogInformation("User changed their password successfully.");
-            StatusMessage = "Your password has been changed.";
+            StatusMessage = "La contraseña ha sido actualizada";
 
             return RedirectToPage();
         }

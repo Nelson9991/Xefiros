@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Xefiros.Server.Resources;
 using Xefiros.Shared.Models;
 
 namespace Xefiros.Server.Areas.Identity.Pages.Account
@@ -43,15 +44,18 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "El {0} es requerido")]
+            [EmailAddress(ErrorMessageResourceType = typeof(SharedResource),
+                ErrorMessageResourceName = "Email__0__is_invalid_")]
+            [Display(Name="Correo")]
             public string Email { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "La contraseña es requerida")]
             [DataType(DataType.Password)]
+            [Display(Name="Contraseña")]
             public string Password { get; set; }
 
-            [Display(Name = "Remember me?")]
+            [Display(Name = "Recuerdame")]
             public bool RememberMe { get; set; }
         }
 
@@ -99,7 +103,7 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "El correo o la cotraseña no son correctos");
                     return Page();
                 }
             }
