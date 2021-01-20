@@ -1,13 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 
 <AuthorizeView>
 	<Authorized>
-		<a class="nav-link mx-2" href="authentication/profile">Hola, @context.User.Identity.Name!</a>
-		<button class="btn btn-outline-danger" @onclick="BeginSignOut">Salir</button>
+		<RadzenLink Path="authentication/profile" Text="@("Hola " + context.User.Identity.Name!)"></RadzenLink>
+		<RadzenButton Style="margin-left: 20px;" Click="BeginSignOut" Text="Salir" ButtonStyle="@ButtonStyle.Secondary"></RadzenButton>
 	</Authorized>
 	<NotAuthorized>
 		<a href="authentication/register">Registrarse</a>

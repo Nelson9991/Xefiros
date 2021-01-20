@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Xefiros.DataAccess.Data.Repository.IRepository;
 using Xefiros.Shared;
+using Xefiros.Shared.Dtos;
 using Xefiros.Utility.Helpers;
 
 namespace Xefiros.DataAccess.Data.Repository
@@ -75,11 +76,9 @@ namespace Xefiros.DataAccess.Data.Repository
             return _mapper.Map<List<TResponse>>(await query.ToListAsync());
         }
 
-        public async Task<ApiResult<TSource, TResponse>> GetAll<TResponse>(
+        public async Task<ApiResponseDto<TResponse>> GetAll<TResponse>(
             int pageIndex = 0,
             int pageSize = 10,
-            string sortColumn = null,
-            string sortOrder = null,
             string filterColumn = null,
             string filterQuery = null,
             string includeProperties = null)
@@ -98,15 +97,24 @@ namespace Xefiros.DataAccess.Data.Repository
                 }
             }
 
-            return await ApiResult<TSource, TResponse>.CreateAsync(
+            var apiResult = await ApiResult<TSource, TResponse>.CreateAsync(
                 queryable,
                 pageIndex,
                 pageSize,
                 _mapper,
-                sortColumn,
-                sortOrder,
                 filterColumn,
                 filterQuery);
+
+            return new ApiResponseDto<TResponse>()
+            {
+                DataResult = apiResult.DataResult,
+                FilterColumn = apiResult.FilterColumn,
+                FilterQuery = apiResult.FilterQuery,
+                PageSize = apiResult.PageSize,
+                PageIndex = apiResult.PageIndex,
+                TotalCount = apiResult.TotalCount,
+                TotalPages = apiResult.TotalPages
+            };
         }
 
         public async Task<TResponse> GetFirstOrDefault<TResponse>(Expression<Func<TSource, bool>> filter = null,

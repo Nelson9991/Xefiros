@@ -1,0 +1,213 @@
+﻿@page "/productos/crear"
+@page "/productos/editar/{id:int}"
+@using System.IO
+@using Xefiros.Client.Services.IServices
+@using FileInfo = System.IO.FileInfo
+@using ButtonType = Radzen.ButtonType
+@inject IJSRuntime JsRuntime
+@inject IHttpRepository HttpRepository
+@inject NavigationManager NavigationManager
+@inject IReadImage ReadImage
+@attribute [Authorize]
+
+<div class="row">
+	<h3 class="card-text text-radzen-secondary mb-2">@_title Producto</h3>
+	<div class="col-md-12">
+		<RadzenCard>
+			<div class="row">
+				<div class="col-8">
+					<RadzenTemplateForm TItem="ProductoDto" Data="@_productoDto" Submit="@(async args => await HandleUpsert())">
+						<DataAnnotationsValidator/>
+						<div class="mb-3">
+							<RadzenLabel Text="Código" class="d-block mb-1"></RadzenLabel>
+							<RadzenTextBox @bind-Value="_productoDto.Codigo" class="w-100"></RadzenTextBox>
+							<ValidationMessage For="() => _productoDto.Codigo"/>
+						</div>
+						<div class="mb-3">
+							<RadzenLabel Text="Nombre" class="d-block mb-1"></RadzenLabel>
+							<RadzenTextBox @bind-Value="_productoDto.Nombre" class="w-100"></RadzenTextBox>
+							<ValidationMessage For="() => _productoDto.Nombre"/>
+						</div>
+						<div class="mb-3">
+							<RadzenLabel Text="Precio" class="d-block mb-1"></RadzenLabel>
+							<RadzenNumeric Min="0" TValue="decimal" @bind-Value="_productoDto.Precio" class="w-100"></RadzenNumeric>
+							<ValidationMessage For="() => _productoDto.Precio"/>
+						</div>
+						<div class="mb-3">
+							<RadzenLabel Text="Stock" class="d-block mb-1"></RadzenLabel>
+							<RadzenNumeric Min="0" TValue="int" @bind-Value="_productoDto.Stock" class="w-100"></RadzenNumeric>
+							<ValidationMessage For="() => _productoDto.Stock"/>
+						</div>
+						<div class="mb-3">
+							<RadzenLabel Text="Descripción" class="d-block mb-1"></RadzenLabel>
+							<RadzenTextArea Cols="30" Rows="3" @bind-Value="_productoDto.Descripcion" class="w-100"></RadzenTextArea>
+						</div>
+						<div class="mb-3">
+							<RadzenLabel Text="Imagen del Producto" class="d-block mb-1"></RadzenLabel>
+							<InputFile OnChange="@HandleImageUpload" class="form-control"></InputFile>
+							@if (_isImageUploadStarted)
+							{
+								<p class="mt-2">
+									Subiendo Imagen...
+								</p>
+								<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+							}
+						</div>
+						<div>
+							<RadzenButton ButtonType="@ButtonType.Submit" Icon="@(_productoDto.Id == 0 ? "save" : "update")" Text="@(_productoDto.Id == 0 ? "Crear Producto" : "Actualizar Producto")" Style="margin-right: 4px;"></RadzenButton>
+							<RadzenButton Icon="keyboard_backspace" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => NavigationManager.NavigateTo("productos"))"></RadzenButton>
+						</div>
+					</RadzenTemplateForm>
+				</div>
+				<div class="col-4 p-4">
+					@if (!string.IsNullOrEmpty(_imagenBase64) && !string.IsNullOrEmpty(_imageExtension))
+					{
+						<img src="data:image/@_imageExtension;base64, @_imagenBase64" alt="Imagen" class="img-fluid" style="width: 100%; border: 1px solid #bbb9b9"/>
+					}
+					else if (!string.IsNullOrEmpty(_imagenUrl))
+					{
+						<img src="@_imagenUrl" alt="Imagen" class="img-fluid" style="width: 100%; border: 1px solid #bbb9b9"/>
+					}
+				</div>
+			</div>
+		</RadzenCard>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int? Id { get; set; }
+
+	private ProductoDto _productoDto = new();
+	private string _title = "Crear";
+	private bool _isImageUploadStarted;
+	private string _imagenBase64;
+	private string _imagenUrl;
+	private string _imageExtension;
+	private IJSInProcessRuntime _jsInProcessRuntime;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
+		if (Id is not null)
+		{
+			_title = "Actualizar";
+
+			var httpResp = await HttpRepository.Get<ProductoDto>($"api/productos/{Id.Value}");
+
+			if (httpResp.Error)
+			{
+				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
+			}
+			else
+			{
+				_productoDto = httpResp.Response;
+				if (!string.IsNullOrEmpty(_productoDto.Imagen))
+				{
+					_imagenBase64 = null;
+					_imagenUrl = _productoDto.Imagen;
+				}
+			}
+		}
+		else
+		{
+			_productoDto ??= new ProductoDto();
+		}
+	}
+
+	private async Task HandleImageUpload(InputFileChangeEventArgs e)
+	{
+		_isImageUploadStarted = true;
+		try
+		{
+			(bool succeded, string result) = await ReadImage.ReadImageAsync(e.File, e.File.Name);
+
+			if (succeded)
+			{
+				_imagenBase64 = result;
+				_imagenUrl = null;
+				_imageExtension = Path.GetExtension(e.File.Name);
+			}
+			else
+			{
+				await JsRuntime.ToastrFailure(result);
+			}
+		}
+		catch (IOException ex)
+		{
+			Console.WriteLine(ex);
+			await JsRuntime.ToastrFailure("Solo se permiten subier imagenes de hasta 1MB!");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			await JsRuntime.ToastrFailure("Error!");
+		}
+		_isImageUploadStarted = false;
+	}
+
+	private async Task HandleUpsert()
+	{
+		try
+		{
+			if (string.IsNullOrEmpty(_imagenBase64))
+			{
+				_productoDto.Imagen = null;
+				_productoDto.ExtensionImagen = null;
+			}
+			else
+			{
+				_productoDto.Imagen = _imagenBase64;
+				_productoDto.ExtensionImagen = _imageExtension;
+			}
+
+			var httpResponse = await HttpRepository.Get<bool>($"api/productos/existe/{_productoDto.Id}/{_productoDto.Codigo}");
+
+			var prodExist = httpResponse.Response;
+
+			if (prodExist)
+			{
+				await JsRuntime.ToastrFailure("Ya existe un producto registrado con el código ingresado");
+				return;
+			}
+			_jsInProcessRuntime.SwalShowLoading();
+			if (_productoDto.Id != 0 && Id is not null)
+			{
+				var updatedResult = await HttpRepository.Put<ProductoDto, DataResponse<string>>($"api/productos/editar/{Id.Value}", _productoDto);
+
+				if (updatedResult.Error)
+				{
+					var responseMessage = await updatedResult.GetResponseBody();
+					await JsRuntime.ToastrFailure(responseMessage);
+				}
+				else
+				{
+					_jsInProcessRuntime.SwalCloseLoading();
+					await JsRuntime.ToastrSuccess(updatedResult.Response.Message);
+					NavigationManager.NavigateTo("productos");
+				}
+			}
+			else
+			{
+				var response = await HttpRepository.Post("api/productos/crear", _productoDto);
+				if (response.Error)
+				{
+					await JsRuntime.ToastrFailure(await response.GetResponseBody());
+				}
+				else
+				{
+					_jsInProcessRuntime.SwalCloseLoading();
+					await JsRuntime.ToastrSuccess("Producto creado con éxito");
+					NavigationManager.NavigateTo("productos");
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			await JsRuntime.ToastrFailure("Error!");
+		}
+	}
+
+}

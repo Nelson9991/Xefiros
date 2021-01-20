@@ -65,7 +65,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Identity\Pages\Shared\" />
-    <Folder Include="Services\" />
+    <Folder Include="Services\IServices\" />
   </ItemGroup>
 
 </Project>

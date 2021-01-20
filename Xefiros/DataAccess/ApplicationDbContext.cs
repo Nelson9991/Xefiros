@@ -14,6 +14,18 @@ namespace Xefiros.DataAccess
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<Cliente>()
+                .HasIndex(x => x.Cedula).IsUnique(true);
+
+            builder.Entity<Producto>()
+                .HasIndex(x => x.Codigo).IsUnique(true);
+
+            base.OnModelCreating(builder);
+        }
+
         public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Producto> Productos { get; set; }
     }
 }

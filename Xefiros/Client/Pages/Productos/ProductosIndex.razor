@@ -1,0 +1,134 @@
+﻿@page "/productos"
+@using System.Linq.Dynamic.Core
+@inject NavigationManager NavigationManager
+@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@attribute [Authorize]
+
+<div class="row">
+	<div class="col-auto me-auto">
+		<h2 class="card-title text-radzen-secondary">Productos</h2>
+	</div>
+	<div class="col-auto">
+		<RadzenButton Icon="add" Text="Crear Producto" Click="@(() => NavigationManager.NavigateTo("productos/crear"))">
+		</RadzenButton>
+	</div>
+</div>
+
+<div class="row mt-4">
+	<div class="col-6 offset-6 text-end">
+		<RadzenDropDown AllowClear="false" Placeholder="10" TValue="int" Data="@(new List<int> {10, 25, 50, 100})" Change="@OnDropDownChange" />
+	</div>
+	<div class="col-12">
+		<ListadoGenerico Listado="@_productosDto">
+			<HayRegistrosCompleto>
+				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_productosDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="ProductoDto">
+					<Columns>
+						<RadzenGridColumn TItem="ProductoDto" Property="Codigo" Title="Codigo" />
+						<RadzenGridColumn TItem="ProductoDto" Property="Nombre" Title="Nombre" />
+						<RadzenGridColumn TItem="ProductoDto" Context="column" Property="Precio" Title="Precio" FormatString="{0:C}" />
+						<RadzenGridColumn TItem="ProductoDto" Property="Stock" Title="Stock" />
+						<RadzenGridColumn TItem="ProductoDto" Property="Descripcion" Title="Descripción" />
+						<RadzenGridColumn TItem="ProductoDto" Context="producto" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
+							<Template>
+								<RadzenButton Icon="edit" Click="@(() => NavigationManager.NavigateTo($"/productos/editar/{producto.Id}"))"></RadzenButton>
+							</Template>
+						</RadzenGridColumn>
+						<RadzenGridColumn TItem="ProductoDto" Context="producto" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
+							<Template>
+								<RadzenButton Icon="delete" ButtonStyle="@ButtonStyle.Danger" Click="@(() => BorrarProducto(producto.Id))"></RadzenButton>
+							</Template>
+						</RadzenGridColumn>
+					</Columns>
+				</RadzenGrid>
+			</HayRegistrosCompleto>
+		</ListadoGenerico>
+	</div>
+</div>
+
+@code {
+	private List<ProductoDto> _productosDto;
+	private int _pageSize;
+	private int _totalCount;
+	private int _currentPage;
+	private RadzenGrid<ProductoDto> _dataGrid;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+
+	private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
+	{
+		var url = $"api/productos?pageIndex={pageIndex}&pageSize={pageSize}";
+
+		var response = await HttpRepository.Get<ApiResponseDto<ProductoDto>>(url);
+
+		if (response.Error)
+		{
+			Console.WriteLine("No se pudo obtener la informacion");
+		}
+		else
+		{
+			_productosDto = response.Response.DataResult;
+			_pageSize = response.Response.PageSize;
+			_totalCount = response.Response.TotalCount;
+			_currentPage = response.Response.PageIndex;
+
+			if (args is not null)
+			{
+				var query = _productosDto.AsQueryable();
+
+				if (!string.IsNullOrEmpty(args.Filter))
+				{
+					query = query.Where(args.Filter);
+				}
+
+				if (!string.IsNullOrEmpty(args.OrderBy))
+				{
+					query = query.OrderBy(args.OrderBy);
+				}
+
+				_productosDto = query.ToList();
+
+				await InvokeAsync(StateHasChanged);
+			}
+		}
+
+	}
+
+	private async Task OnDropDownChange(object value)
+	{
+		_pageSize = (int)value;
+		await LoadData(null, 0, _pageSize);
+		_dataGrid.GoToPage(0);
+	}
+
+	private async Task BorrarProducto(int prodId)
+	{
+		try
+		{
+			var result = await JsRuntime.SwalConfirmation("¿Está seguro de borrar este producto?");
+
+			if (result)
+			{
+				var deletedResponse = await HttpRepository.Delete<DataResponse<string>>($"api/productos/{prodId}");
+
+				if (deletedResponse.Error)
+				{
+					await JsRuntime.ToastrFailure(deletedResponse.Response.Message);
+				}
+				else
+				{
+					_dataGrid.Reload();
+					await JsRuntime.ToastrSuccess(deletedResponse.Response.Message);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+		}
+	}
+
+}

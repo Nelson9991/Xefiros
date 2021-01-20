@@ -1,0 +1,30 @@
+﻿@typeparam TItem
+
+@if (Listado == null)
+{
+	if (Cargando == null)
+	{
+		<i class="fas fa-spinner fa-spin"></i>
+		<sap>Cargando...</sap>
+	}
+	else
+	{
+		@Cargando
+	}
+}
+else
+{
+	@HayRegistrosCompleto
+}
+
+@code {
+
+	[Parameter]
+	public RenderFragment Cargando { get; set; }
+
+	[Parameter]
+	public List<TItem> Listado { get; set; }
+
+	[Parameter]
+	public RenderFragment HayRegistrosCompleto { get; set; }
+}

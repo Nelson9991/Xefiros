@@ -1,35 +1,52 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-	<a class="navbar-brand" href="" style="padding-left: 25px">Distribuidora la Caserita</a>
-	<button class="navbar-toggler" @onclick="ToggleNavMenu">
-		<span class="navbar-toggler-icon"></span>
-	</button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-	<ul class="nav flex-column">
-		<li class="nav-item px-3">
-			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-				<i class="bi bi-house-door-fill" style="font-size: 1.25rem;"></i>
-				<span style="margin-left: 10px">Inicio</span>
-			</NavLink>
-		</li>
-		<li class="nav-item px-3">
-			<NavLink class="nav-link" href="clientes">
-				<i class="bi bi-people-fill" style="font-size: 1.25rem;"></i>
-				<span style="margin-left: 10px">Clientes</span>
-			</NavLink>
-		</li>
-	</ul>
-</div>
+﻿
+<Sidebar @ref="sidebar">
+	<SidebarContent>
+		<SidebarBrand>
+			<a href="">Blazorise Sidebar</a>
+		</SidebarBrand>
+		<SidebarNavigation>
+			<SidebarLabel>Main</SidebarLabel>
+			<SidebarItem>
+				<SidebarLink To="" Title="Home">
+					<Icon Name="IconName.Home" Margin="Margin.Is3.FromRight"/>Home
+				</SidebarLink>
+			</SidebarItem>
+			<SidebarItem>
+				<SidebarLink Toggled="(isOpen) => mailSidebarSubItems.Toggle(isOpen)" IsShow="true">
+					<Icon Name="IconName.Mail" Margin="Margin.Is3.FromRight"/>Email
+				</SidebarLink>
+				<SidebarSubItem @ref="mailSidebarSubItems" IsShow="true">
+					<SidebarItem>
+						<SidebarLink To="email/inbox">Inbox</SidebarLink>
+					</SidebarItem>
+					<SidebarItem>
+						<SidebarLink To="email/compose">Compose Email</SidebarLink>
+					</SidebarItem>
+					@* other subitems *@
+				</SidebarSubItem>
+			</SidebarItem>
+			<SidebarItem>
+				<SidebarLink Toggled="(isOpen) => appsSidebarSubItems.Toggle(isOpen)" IsShow="true">
+					<Icon Name="IconName.Smartphone" Margin="Margin.Is3.FromRight"/>Apps
+				</SidebarLink>
+				<SidebarSubItem @ref="appsSidebarSubItems" IsShow="true">
+					<SidebarItem>
+						<SidebarLink To="apps/todo">Todo List</SidebarLink>
+					</SidebarItem>
+				</SidebarSubItem>
+			</SidebarItem>
+		</SidebarNavigation>
+	</SidebarContent>
+</Sidebar>
 
 @code {
-	private bool collapseNavMenu = true;
+	Sidebar sidebar;
+	SidebarSubItem mailSidebarSubItems;
+	SidebarSubItem appsSidebarSubItems;
 
-	private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-	private void ToggleNavMenu()
+	void ToggleSidebar()
 	{
-		collapseNavMenu = !collapseNavMenu;
+		sidebar.Toggle();
 	}
 
 }

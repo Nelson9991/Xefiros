@@ -28,7 +28,7 @@ namespace Xefiros.DataAccess.Data.Repository
                 return new DataResponse<string>
                 {
                     Sussces = false,
-                    Message = "No se encontró el usuario para actualizar"
+                    Message = "No se encontró el cliente para actualizar"
                 };
             }
 
@@ -41,6 +41,16 @@ namespace Xefiros.DataAccess.Data.Repository
                 Sussces = true,
                 Message = "Cliente actualizado correctamente!"
             };
+        }
+
+        public async Task<bool> ExisteClienteConCedula(string cedula, int clienteId = 0)
+        {
+            if (clienteId == 0)
+            {
+                return await _context.Clientes.AnyAsync(x => x.Cedula == cedula);
+            }
+
+            return await _context.Clientes.AnyAsync(x => x.Cedula == cedula && x.Id != clienteId);
         }
     }
 }

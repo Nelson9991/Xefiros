@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-	<div class="sidebar">
+	<div>
 		<NavMenu/>
 	</div>
 
@@ -10,8 +10,13 @@
 			<LoginDisplay/>
 		</div>
 
-		<div class="content container">
+		<div class="content container pb-5">
 			@Body
 		</div>
 	</div>
 </div>
+
+<RadzenDialog/>
+<RadzenNotification/>
+<RadzenContextMenu/>
+<RadzenTooltip/>

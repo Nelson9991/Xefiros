@@ -8,6 +8,15 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
+using Radzen;
+using Xefiros.Client.Data.Repository;
+using Xefiros.Client.Data.Repository.IRepository;
+using Xefiros.Client.Helpers;
+using Xefiros.Client.Services;
+using Xefiros.Client.Services.IServices;
 
 namespace Xefiros.Client
 {
@@ -16,17 +25,43 @@ namespace Xefiros.Client
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddHttpClient("Xefiros.ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            builder.Services.AddHttpClient<HttpClientConToken>(
+                    client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
                 .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
-            // Supply HttpClient instances that include access tokens when making requests to the server project
-            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Xefiros.ServerAPI"));
+            builder.Services.AddHttpClient<HttpClientSinToken>(
+                client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
-            builder.Services.AddApiAuthorization();
+            ConfigureServices(builder.Services);
 
-            await builder.Build().RunAsync();
+            builder.Services
+                .AddBlazorise(options => { options.ChangeTextOnKeyPress = true; })
+                .AddBootstrapProviders()
+                .AddFontAwesomeIcons();
+
+            var host = builder.Build();
+
+            host.Services
+                .UseBootstrapProviders()
+                .UseFontAwesomeIcons();
+
+            await host.RunAsync();
+        }
+
+        public static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddApiAuthorization();
+
+            services.AddScoped<DialogService>();
+            services.AddScoped<NotificationService>();
+            services.AddScoped<TooltipService>();
+            services.AddScoped<ContextMenuService>();
+
+            services.AddScoped<IHttpRepository, HttpRepository>();
+            services.AddScoped<IReadImage, ReadImage>();
         }
     }
 }

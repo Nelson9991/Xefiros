@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using System.Text.Json.Serialization;
 using Xefiros.Utility.Helpers;
 
 namespace Xefiros.Shared
@@ -17,8 +18,6 @@ namespace Xefiros.Shared
             int count,
             int pageIndex,
             int pageSize,
-            string sortColumn,
-            string sortOrder,
             string filterColumn,
             string filterQuery)
         {
@@ -27,8 +26,6 @@ namespace Xefiros.Shared
             PageSize = pageSize;
             TotalCount = count;
             TotalPages = (int) Math.Ceiling(count / (double) pageSize);
-            SortColumn = sortColumn;
-            SortOrder = sortOrder;
             FilterColumn = filterColumn;
             FilterQuery = filterQuery;
         }
@@ -40,8 +37,6 @@ namespace Xefiros.Shared
             int pageIndex,
             int pageSize,
             IMapper mapper,
-            string sortColumn = null,
-            string sortOrder = null,
             string filterColumn = null,
             string filterQuery = null)
         {
@@ -56,15 +51,6 @@ namespace Xefiros.Shared
 
             var count = await source.CountAsync();
 
-            if (!string.IsNullOrEmpty(sortColumn) && PropertyValidator.IsValidProperty<TSource>(sortColumn))
-            {
-                sortOrder = !string.IsNullOrEmpty(sortOrder) && sortOrder.ToUpper() == "ASC" ? "ASC" : "DESC";
-
-                source = source.OrderBy(
-                    $"{sortColumn} {sortOrder}"
-                );
-            }
-
             source = source
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize);
@@ -76,8 +62,6 @@ namespace Xefiros.Shared
                 count,
                 pageIndex,
                 pageSize,
-                sortColumn,
-                sortOrder,
                 filterColumn,
                 filterQuery);
         }
@@ -127,16 +111,6 @@ namespace Xefiros.Shared
         {
             get { return ((PageIndex + 1) < TotalPages); }
         }
-
-        /// <summary>
-        /// Sorting Column name (or null if none set)
-        /// </summary>
-        public string SortColumn { get; set; }
-
-        /// <summary>
-        /// Sorting Order ("ASC", "DESC" or null if none set)
-        /// </summary>
-        public string SortOrder { get; set; }
 
         /// <summary>
         /// Filter Column name (or null if none set)

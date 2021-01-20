@@ -1,0 +1,128 @@
+﻿@page "/clientes/crear"
+@page "/clientes/editar/{id:int}"
+@using ButtonType = Radzen.ButtonType
+@inject NavigationManager NavigationManager
+@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@attribute [Authorize]
+
+<div class="row">
+	<h3 class="card-text text-radzen-secondary mb-2">@_title Cliente</h3>
+	<div class="col-md-12">
+		<RadzenCard>
+			<RadzenTemplateForm Data="@_clienteDto" Submit="@(async (ClienteDto args) => { await HandleUpsert(); })">
+				<DataAnnotationsValidator/>
+				<div class="mb-3">
+					<RadzenLabel Text="Nombres" class="d-block mb-1"></RadzenLabel>
+					<RadzenTextBox @bind-Value="_clienteDto.Nombres" class="w-100"></RadzenTextBox>
+					<ValidationMessage For="() => _clienteDto.Nombres"/>
+				</div>
+				<div class="mb-3">
+					<RadzenLabel Text="Apellidos" class="d-block mb-1"></RadzenLabel>
+					<RadzenTextBox @bind-Value="_clienteDto.Apellidos" class="w-100"></RadzenTextBox>
+					<ValidationMessage For="() => _clienteDto.Apellidos"/>
+				</div>
+				<div class="mb-3">
+					<RadzenLabel Text="Cédula" class="d-block mb-1"></RadzenLabel>
+					<RadzenTextBox @bind-Value="_clienteDto.Cedula" class="w-100"></RadzenTextBox>
+					<ValidationMessage For="() => _clienteDto.Cedula"/>
+				</div>
+				<div class="mb-3">
+					<RadzenLabel Text="Dirección" class="d-block mb-1"></RadzenLabel>
+					<RadzenTextArea @bind-Value="_clienteDto.Direccion" class="w-100" Cols="30" Rows="3"></RadzenTextArea>
+					<ValidationMessage For="() => _clienteDto.Direccion"/>
+				</div>
+				<div class="mb-3">
+					<RadzenLabel Text="Teléfono" class="d-block mb-1"></RadzenLabel>
+					<RadzenTextBox @bind-Value="_clienteDto.PhoneNumber" class="w-100"></RadzenTextBox>
+					<ValidationMessage For="() => _clienteDto.PhoneNumber"/>
+				</div>
+				<div>
+					<RadzenButton ButtonType="@ButtonType.Submit" Icon="@(_clienteDto.Id == 0 ? "save" : "update")" Text="@(_clienteDto.Id == 0 ? "Crear Cliente" : "Actualizar Cliente")" Style="margin-right: 4px;"></RadzenButton>
+					<RadzenButton Icon="keyboard_backspace" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => NavigationManager.NavigateTo("clientes"))"></RadzenButton>
+				</div>
+			</RadzenTemplateForm>
+		</RadzenCard>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int? Id { get; set; }
+
+	private ClienteDto _clienteDto = new();
+	private string _title = "Crear";
+	private IJSInProcessRuntime _jsInProcessRuntime;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
+		if (Id is not null)
+		{
+			_title = "Editar";
+			var httpResponse = await HttpRepository.Get<ClienteDto>($"api/clientes/{Id.Value}");
+
+			if (httpResponse.Error)
+			{
+				var responseMessage = await httpResponse.GetResponseBody();
+				NavigationManager.NavigateTo("clientes");
+				await JsRuntime.ToastrFailure(responseMessage);
+			}
+			else
+			{
+				_clienteDto = httpResponse.Response;
+			}
+		}
+		else
+		{
+			_clienteDto ??= new ClienteDto();
+		}
+	}
+
+	private async Task HandleUpsert()
+	{
+		try
+		{
+			var httpResponse = await HttpRepository.Get<bool>($"api/clientes/existe/{_clienteDto.Id}/{_clienteDto.Cedula}");
+
+			var clienteExists = httpResponse.Response;
+
+			if (clienteExists)
+			{
+				await JsRuntime.ToastrFailure("Ya existe un cliente registrado con la cédula ingresada");
+				return;
+			}
+			_jsInProcessRuntime.SwalShowLoading();
+			if (_clienteDto.Id != 0 && Id != null)
+			{
+				var updatedResponse = await HttpRepository.Put<ClienteDto, DataResponse<string>>($"api/clientes/editar/{Id.Value}", _clienteDto);
+
+				if (updatedResponse.Error)
+				{
+					var responseMessage = await updatedResponse.GetResponseBody();
+					await JsRuntime.ToastrFailure(responseMessage);
+				}
+				else
+				{
+					_jsInProcessRuntime.SwalCloseLoading();
+					await JsRuntime.ToastrSuccess(updatedResponse.Response.Message);
+				}
+			}
+			else
+			{
+				await HttpRepository.Post($"api/clientes/crear", _clienteDto);
+				_jsInProcessRuntime.SwalCloseLoading();
+				await JsRuntime.ToastrSuccess("Cliente registrado con éxito");
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			await JsRuntime.ToastrFailure("Error!");
+		}
+
+		NavigationManager.NavigateTo("clientes");
+	}
+
+}

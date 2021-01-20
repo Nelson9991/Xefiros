@@ -13,6 +13,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Options;
 using Xefiros.DataAccess;
+using Xefiros.DataAccess.Data.Repository;
+using Xefiros.DataAccess.Data.Repository.IRepository;
+using Xefiros.DataAccess.MappingConf;
+using Xefiros.DataAccess.Services;
+using Xefiros.DataAccess.Services.IServices;
 using Xefiros.Server.Helpers;
 using Xefiros.Server.Services;
 using Xefiros.Shared.Models;
@@ -36,7 +41,10 @@ namespace Xefiros.Server
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-            services.AddAutoMapper(typeof(Startup));
+            var mappingConfig = new MapperConfiguration(mc => { mc.AddProfile(new MapperProfile()); });
+            var mapper = mappingConfig.CreateMapper();
+
+            services.AddSingleton(mapper);
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -63,10 +71,13 @@ namespace Xefiros.Server
             services.AddControllersWithViews()
                 .AddJsonOptions(opts =>
                 {
-                    opts.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+                    opts.JsonSerializerOptions.IgnoreReadOnlyFields = true;
+                    opts.JsonSerializerOptions.IgnoreReadOnlyProperties = true;
                 });
 
             services.AddSingleton<IConfigureOptions<MvcOptions>, ConfigureModelBindingLocalization>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IFileUpload, AzureFileUpload>();
         }
 
 

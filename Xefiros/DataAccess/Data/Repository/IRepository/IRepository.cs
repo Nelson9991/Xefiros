@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Xefiros.Shared;
+using Xefiros.Shared.Dtos;
 using Xefiros.Utility.Helpers;
 
 namespace Xefiros.DataAccess.Data.Repository.IRepository
@@ -20,11 +21,9 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
             string includeProperties = null
         );
 
-        Task<ApiResult<TSource, TResponse>> GetAll<TResponse>(
+        Task<ApiResponseDto<TResponse>> GetAll<TResponse>(
             int pageIndex = 0,
             int pageSize = 10,
-            string sortColumn = null,
-            string sortOrder = null,
             string filterColumn = null,
             string filterQuery = null,
             string includeProperties = null
