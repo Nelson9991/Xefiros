@@ -63,7 +63,7 @@ namespace Xefiros.DataAccess.Data.Repository
                 {
                     if (PropertyValidator.IsValidProperty<TSource>(includeProperty))
                     {
-                        query.Include(includeProperty);
+                        query = query.Include(includeProperty);
                     }
                 }
             }
@@ -92,7 +92,7 @@ namespace Xefiros.DataAccess.Data.Repository
                 {
                     if (PropertyValidator.IsValidProperty<TSource>(includeProperty))
                     {
-                        queryable.Include(includeProperty);
+                        queryable = queryable.Include(includeProperty);
                     }
                 }
             }
@@ -117,8 +117,10 @@ namespace Xefiros.DataAccess.Data.Repository
             };
         }
 
-        public async Task<TResponse> GetFirstOrDefault<TResponse>(Expression<Func<TSource, bool>> filter = null,
+        public async Task<DataResponse<TResponse>> GetFirstOrDefault<TResponse>(
+            Expression<Func<TSource, bool>> filter = null,
             string includeProperties = null)
+
         {
             IQueryable<TSource> queryable = DbSet;
 
@@ -132,11 +134,26 @@ namespace Xefiros.DataAccess.Data.Repository
                 foreach (var includeProperty in includeProperties.Split(new[] {','},
                     StringSplitOptions.RemoveEmptyEntries))
                 {
-                    queryable.Include(includeProperty);
+                    queryable = queryable.Include(includeProperty);
                 }
             }
 
-            return _mapper.Map<TResponse>(await queryable.FirstOrDefaultAsync());
+            var result = await queryable.FirstOrDefaultAsync();
+
+            if (result is null)
+            {
+                return new DataResponse<TResponse>()
+                {
+                    Sussces = false,
+                    Message = "No se encontro la venta"
+                };
+            }
+
+            return new DataResponse<TResponse>()
+            {
+                Sussces = true,
+                Data = _mapper.Map<TResponse>(result)
+            };
         }
 
         public async Task Add<TDto>(TDto dto)
@@ -145,25 +162,26 @@ namespace Xefiros.DataAccess.Data.Repository
             await DbSet.AddAsync(entity);
         }
 
-        public async Task<DataResponse<string>> Remove(int id)
+        public async Task<DataResponse<TSource>> Remove(int id)
         {
             TSource entityToRemove = await DbSet.FindAsync(id);
 
             if (entityToRemove is null)
             {
-                return new DataResponse<string>
+                return new DataResponse<TSource>
                 {
                     Sussces = false,
-                    Message = "No se encontro el Cliente"
+                    Message = "No se encontro"
                 };
             }
 
             Remove(entityToRemove);
 
-            return new DataResponse<string>
+            return new DataResponse<TSource>
             {
+                Data = entityToRemove,
                 Sussces = true,
-                Message = "Cliente borrado con exito",
+                Message = "borrado con éxito",
             };
         }
 

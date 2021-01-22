@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xefiros.DataAccess.Data.Repository.IRepository;
 using Xefiros.Shared.Dtos;
+using Xefiros.Shared.Models;
 using Xefiros.Utility.Helpers;
 
 namespace Xefiros.Server.Controllers
@@ -74,9 +75,9 @@ namespace Xefiros.Server.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<DataResponse<string>>> DeleteAsync(int id)
+        public async Task<ActionResult<DataResponse<Producto>>> DeleteAsync(int id)
         {
-            var response = await _unitOfWork.ProductoRepository.Remove(id);
+            var response = await _unitOfWork.ProductoRepository.RemoveProductoWithImage(id);
 
             if (!response.Sussces)
             {
@@ -84,6 +85,7 @@ namespace Xefiros.Server.Controllers
             }
 
             await _unitOfWork.SaveAsync();
+            response.Data = null;
             return response;
         }
     }

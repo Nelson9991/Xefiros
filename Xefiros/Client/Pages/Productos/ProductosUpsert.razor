@@ -10,8 +10,8 @@
 @inject IReadImage ReadImage
 @attribute [Authorize]
 
+<h3 class="card-text text-radzen-secondary mb-2">@_title Producto</h3>
 <div class="row">
-	<h3 class="card-text text-radzen-secondary mb-2">@_title Producto</h3>
 	<div class="col-md-12">
 		<RadzenCard>
 			<div class="row">
@@ -44,7 +44,7 @@
 						</div>
 						<div class="mb-3">
 							<RadzenLabel Text="Imagen del Producto" class="d-block mb-1"></RadzenLabel>
-							<InputFile OnChange="@HandleImageUpload" class="form-control"></InputFile>
+							<InputFile OnChange="@HandleImageUpload"></InputFile>
 							@if (_isImageUploadStarted)
 							{
 								<p class="mt-2">

@@ -10,5 +10,6 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
         public Task<DataResponse<string>> Update(int prodId, ProductoDto prodDto);
         public Task<bool> ExisteProductoCodigo(string codigo, int prodId = 0);
         public Task AddProducto(ProductoDto productoDto);
+        public Task<DataResponse<Producto>> RemoveProductoWithImage(int id);
     }
 }

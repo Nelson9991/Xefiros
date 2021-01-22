@@ -5,12 +5,12 @@
 
 <AuthorizeView>
 	<Authorized>
-		<RadzenLink Path="authentication/profile" Text="@("Hola " + context.User.Identity.Name!)"></RadzenLink>
-		<RadzenButton Style="margin-left: 20px;" Click="BeginSignOut" Text="Salir" ButtonStyle="@ButtonStyle.Secondary"></RadzenButton>
+		<a href="authentication/profile" class="btn btn-link">@("Hola " + context.User.Identity.Name + "!")</a> 
+		<RadzenButton Click="BeginSignOut" Text="Salir" ButtonStyle="@ButtonStyle.Secondary"></RadzenButton>
 	</Authorized>
 	<NotAuthorized>
-		<a href="authentication/register">Registrarse</a>
-		<a href="authentication/login">Iniciar Sesión</a>
+		<a href="authentication/register"class="btn btn-link">Registrarse</a>
+		<a href="authentication/login"class="btn btn-link">Iniciar Sesión</a>
 	</NotAuthorized>
 </AuthorizeView>
 

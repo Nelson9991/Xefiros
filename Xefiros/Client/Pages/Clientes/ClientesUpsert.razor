@@ -6,8 +6,8 @@
 @inject IJSRuntime JsRuntime
 @attribute [Authorize]
 
+<h3 class="card-text text-radzen-secondary mb-2">@_title Cliente</h3>
 <div class="row">
-	<h3 class="card-text text-radzen-secondary mb-2">@_title Cliente</h3>
 	<div class="col-md-12">
 		<RadzenCard>
 			<RadzenTemplateForm Data="@_clienteDto" Submit="@(async (ClienteDto args) => { await HandleUpsert(); })">

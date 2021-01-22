@@ -9,15 +9,17 @@ namespace Xefiros.DataAccess.Data.Repository
     {
         private readonly ApplicationDbContext _context;
 
+        public IClienteRepository ClienteRepository { get; private set; }
+        public IProductoRepository ProductoRepository { get; private set; }
+        public IVentasRepository VentasRepository { get; private set; }
+
         public UnitOfWork(ApplicationDbContext context, IMapper mapper, IFileUpload fileUpload)
         {
             _context = context;
             ClienteRepository = new ClienteRepository(context, mapper);
             ProductoRepository = new ProductoRepository(context, mapper, fileUpload);
+            VentasRepository = new VentaRepository(context, mapper);
         }
-
-        public IClienteRepository ClienteRepository { get; private set; }
-        public IProductoRepository ProductoRepository { get; private set; }
 
         public async Task SaveAsync()
         {

@@ -12,6 +12,8 @@ namespace Xefiros.DataAccess.MappingConf
             CreateMap<Cliente, ClienteDto>().ReverseMap();
             CreateMap<ProductoDto, Producto>().ForMember(x => x.Imagen, opt => opt.Ignore());
             CreateMap<Producto, ProductoDto>();
+            CreateMap<Venta, VentaDto>();
+            CreateMap<VentaCreateDto, Venta>();
         }
     }
 }

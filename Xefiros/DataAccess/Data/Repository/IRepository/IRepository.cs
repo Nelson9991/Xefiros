@@ -29,12 +29,12 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
             string includeProperties = null
         );
 
-        Task<TResponse> GetFirstOrDefault<TResponse>(Expression<Func<TSource, bool>> filter = null,
+        Task<DataResponse<TResponse>> GetFirstOrDefault<TResponse>(Expression<Func<TSource, bool>> filter = null,
             string includeProperties = null);
 
         Task Add<TDto>(TDto dto);
 
-        Task<DataResponse<string>> Remove(int id);
+        Task<DataResponse<TSource>> Remove(int id);
         void Remove(TSource entity);
     }
 }

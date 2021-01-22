@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Xefiros.DataAccess.Data.Repository.IRepository;
-using Xefiros.Shared;
 using Xefiros.Shared.Dtos;
 using Xefiros.Shared.Models;
 using Xefiros.Utility.Helpers;
@@ -15,32 +13,33 @@ namespace Xefiros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    public class ClientesController : ControllerBase
+    public class VentasController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public ClientesController(IUnitOfWork unitOfWork)
+        public VentasController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponseDto<ClienteDto>>> GetAllAsync(
+        public async Task<ActionResult<ApiResponseDto<VentaDto>>> GetAllAsync(
             int pageIndex = 0,
             int pageSize = 10,
             string filterColumn = null,
             string filterQuery = null,
             string includeProperties = null)
         {
-            return await _unitOfWork.ClienteRepository.GetAll<ClienteDto>(pageIndex, pageSize, filterColumn,
-                filterQuery);
+            return await _unitOfWork.VentasRepository.GetAll<VentaDto>(pageIndex, pageSize, filterColumn,
+                filterQuery, includeProperties);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ClienteDto>> GetClienteAsync(int id)
+        public async Task<ActionResult<VentaDto>> GetVentaWithRelationDataAsync(int id,
+            [FromQuery] string includeProperties = null)
         {
-            var response = await _unitOfWork.ClienteRepository.Get<ClienteDto>(id);
+            var response =
+                await _unitOfWork.VentasRepository.GetFirstOrDefault<VentaDto>(x => x.Id == id, includeProperties);
 
             if (!response.Sussces)
             {
@@ -50,24 +49,18 @@ namespace Xefiros.Server.Controllers
             return response.Data;
         }
 
-        [HttpGet("existe/{id}/{cedula}")]
-        public async Task<bool> ExisteCliente(int id, string cedula)
-        {
-            return await _unitOfWork.ClienteRepository.ExisteClienteConCedula(cedula, id);
-        }
-
         [HttpPost("crear")]
-        public async Task<IActionResult> PostAsync(ClienteDto cliente)
+        public async Task<IActionResult> PostAsync(VentaCreateDto ventaCreateDto)
         {
-            await _unitOfWork.ClienteRepository.Add(cliente);
+            await _unitOfWork.VentasRepository.Add(ventaCreateDto);
             await _unitOfWork.SaveAsync();
             return StatusCode(201);
         }
 
         [HttpPut("editar/{id:int}")]
-        public async Task<ActionResult<DataResponse<string>>> PutAsync(int id, ClienteDto clienteDto)
+        public async Task<ActionResult<DataResponse<string>>> PutAsync(int id, VentaCreateDto ventaCreateDto)
         {
-            var response = await _unitOfWork.ClienteRepository.Update(id, clienteDto);
+            var response = await _unitOfWork.VentasRepository.Update(id, ventaCreateDto);
 
             if (!response.Sussces)
             {
@@ -78,9 +71,9 @@ namespace Xefiros.Server.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<DataResponse<Cliente>>> DeleteAsync(int id)
+        public async Task<ActionResult<DataResponse<Venta>>> DeleteAsync(int id)
         {
-            var response = await _unitOfWork.ClienteRepository.Remove(id);
+            var response = await _unitOfWork.VentasRepository.Remove(id);
 
             if (!response.Sussces)
             {

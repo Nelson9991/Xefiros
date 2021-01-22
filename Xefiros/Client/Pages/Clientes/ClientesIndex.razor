@@ -5,8 +5,8 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<div class="row">
-	<div class="col-auto me-auto">
+<div class="row justify-content-between align-items-center">
+	<div class="col-auto">
 		<h2 class="card-title text-radzen-secondary">Clientes</h2>
 	</div>
 	<div class="col-auto">
@@ -16,7 +16,7 @@
 </div>
 
 <div class="row mt-4">
-	<div class="col-6 offset-6 text-end">
+	<div class="col-12 text-right">
 		<RadzenDropDown AllowClear="false" Placeholder="10" TValue="int" Data="@(new List<int> {10, 25, 50, 100})" Change="@OnDropDownChange" />
 	</div>
 	<div class="col-12">
@@ -121,7 +121,7 @@
 				else
 				{
 					_dataGrid.Reload();
-					await JsRuntime.ToastrSuccess(deletedResponse.Response.Message);
+					await JsRuntime.ToastrSuccess("Cliente " + deletedResponse.Response.Message);
 				}
 			}
 		}

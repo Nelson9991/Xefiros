@@ -1,52 +1,39 @@
-﻿
-<Sidebar @ref="sidebar">
-	<SidebarContent>
-		<SidebarBrand>
-			<a href="">Blazorise Sidebar</a>
-		</SidebarBrand>
-		<SidebarNavigation>
-			<SidebarLabel>Main</SidebarLabel>
-			<SidebarItem>
-				<SidebarLink To="" Title="Home">
-					<Icon Name="IconName.Home" Margin="Margin.Is3.FromRight"/>Home
-				</SidebarLink>
-			</SidebarItem>
-			<SidebarItem>
-				<SidebarLink Toggled="(isOpen) => mailSidebarSubItems.Toggle(isOpen)" IsShow="true">
-					<Icon Name="IconName.Mail" Margin="Margin.Is3.FromRight"/>Email
-				</SidebarLink>
-				<SidebarSubItem @ref="mailSidebarSubItems" IsShow="true">
-					<SidebarItem>
-						<SidebarLink To="email/inbox">Inbox</SidebarLink>
-					</SidebarItem>
-					<SidebarItem>
-						<SidebarLink To="email/compose">Compose Email</SidebarLink>
-					</SidebarItem>
-					@* other subitems *@
-				</SidebarSubItem>
-			</SidebarItem>
-			<SidebarItem>
-				<SidebarLink Toggled="(isOpen) => appsSidebarSubItems.Toggle(isOpen)" IsShow="true">
-					<Icon Name="IconName.Smartphone" Margin="Margin.Is3.FromRight"/>Apps
-				</SidebarLink>
-				<SidebarSubItem @ref="appsSidebarSubItems" IsShow="true">
-					<SidebarItem>
-						<SidebarLink To="apps/todo">Todo List</SidebarLink>
-					</SidebarItem>
-				</SidebarSubItem>
-			</SidebarItem>
-		</SidebarNavigation>
-	</SidebarContent>
-</Sidebar>
-
-@code {
-	Sidebar sidebar;
-	SidebarSubItem mailSidebarSubItems;
-	SidebarSubItem appsSidebarSubItems;
-
-	void ToggleSidebar()
-	{
-		sidebar.Toggle();
-	}
-
-}
+﻿<Bar
+	Mode="BarMode.VerticalInline"
+	CollapseMode="BarCollapseMode.Small"
+	Breakpoint="Breakpoint.Desktop"
+	NavigationBreakpoint="Breakpoint.Tablet"
+	ThemeContrast="ThemeContrast.Dark">
+	<BarToggler Mode="@BarTogglerMode.Normal"/>
+	<BarBrand>
+		<BarItem>
+			<BarLink To="/">
+				<BarIcon IconName="IconName.Truck"/>
+				D. La Caserita
+			</BarLink>
+		</BarItem>
+	</BarBrand>
+	<BarMenu>
+		<BarStart>
+			<BarLabel>Dashboard</BarLabel>
+			<BarItem>
+				<BarLink To="/">
+					<BarIcon IconName="IconName.Home"/>
+					Inicio
+				</BarLink>
+			</BarItem>
+			<BarItem>
+				<BarLink To="clientes">
+					<BarIcon IconName="IconName.UserFriends"></BarIcon>
+					Clientes
+				</BarLink>
+			</BarItem>
+			<BarItem>
+				<BarLink To="productos">
+					<BarIcon IconName="@("fa-hammer")"></BarIcon>
+					Productos
+				</BarLink>
+			</BarItem>
+		</BarStart>
+	</BarMenu>
+</Bar>

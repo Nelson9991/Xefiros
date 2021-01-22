@@ -1,4 +1,4 @@
-﻿window.showToastr = (type, message) => {
+﻿function showToastr(type, message) {
 	if (type === 'success') {
 		// Display a success toast, with a title
 		toastr.success(message, 'Operación Exitosa');
@@ -9,7 +9,7 @@
 	}
 }
 
-window.showSwal = (type, message, headingTitle) => {
+function showSwal(type, message, headingTitle){
 	if (type === 'success') {
 		Swal.fire({
 			title: headingTitle,
@@ -26,7 +26,7 @@ window.showSwal = (type, message, headingTitle) => {
 	}
 }
 
-window.activateLoading = () => {
+function activateLoading(){
 	Swal.fire({
 		text: 'Espere porfavor',
 		allowOutsideClick: false,
@@ -36,11 +36,11 @@ window.activateLoading = () => {
 Swal.showLoading();
 }
 
-window.closeLoading = () => {
+function closeLoading(){
 	Swal.close();
 }
 
-window.swalConfirmation = (message) => {
+function swalConfirmation(message){
 	return Swal.fire({
 		title: 'Información',
 		text: message,

@@ -22,10 +22,23 @@ namespace Xefiros.DataAccess
             builder.Entity<Producto>()
                 .HasIndex(x => x.Codigo).IsUnique(true);
 
+            builder.Entity<Venta>()
+                .HasOne(x => x.Cliente)
+                .WithMany(x => x.Ventas)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<DetalleVenta>()
+                .HasOne(x => x.Producto)
+                .WithMany()
+                .OnDelete(DeleteBehavior.SetNull);
+
             base.OnModelCreating(builder);
         }
 
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Producto> Productos { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVenta> DetallesVenta { get; set; }
+        public DbSet<Abono> Abonos { get; set; }
     }
 }

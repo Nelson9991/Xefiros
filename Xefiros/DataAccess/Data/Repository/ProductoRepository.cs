@@ -39,6 +39,18 @@ namespace Xefiros.DataAccess.Data.Repository
             await DbSet.AddAsync(entity);
         }
 
+        public async Task<DataResponse<Producto>> RemoveProductoWithImage(int id)
+        {
+            var dataResponse = await Remove(id);
+
+            if (dataResponse.Sussces)
+            {
+                await _fileUpload.EliminarArchivo(dataResponse.Data.Imagen, StorageContainerNames.ContenedorProductos);
+            }
+
+            return dataResponse;
+        }
+
         public async Task<DataResponse<string>> Update(int prodId, ProductoDto prodDto)
         {
             var productoDb = await _context.Productos.FindAsync(prodId);
