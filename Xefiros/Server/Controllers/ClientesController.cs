@@ -33,8 +33,20 @@ namespace Xefiros.Server.Controllers
             string filterQuery = null,
             string includeProperties = null)
         {
-            return await _unitOfWork.ClienteRepository.GetAll<ClienteDto>(pageIndex, pageSize, filterColumn,
+            return await _unitOfWork.ClienteRepository.GetAllWithPaging<ClienteDto>(pageIndex, pageSize, filterColumn,
                 filterQuery);
+        }
+
+        [HttpGet("all")]
+        public async Task<ActionResult<List<ClienteDto>>> GetAllWithNoPagingAsync()
+        {
+            return await _unitOfWork.ClienteRepository.GetAllNoPaging<ClienteDto>();
+        }
+
+        [HttpGet("dropdown")]
+        public async Task<ActionResult<List<ClienteDropDownDto>>> GetAllForDropDownAsync()
+        {
+            return await _unitOfWork.ClienteRepository.GetClientesForDropDown();
         }
 
         [HttpGet("{id:int}")]

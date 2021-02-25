@@ -15,13 +15,13 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
     {
         Task<DataResponse<TResponse>> Get<TResponse>(int id) where TResponse : class;
 
-        Task<List<TResponse>> GetAll<TResponse>(
+        Task<List<TResponse>> GetAllNoPaging<TResponse>(
             Expression<Func<TSource, bool>> filter = null,
             Func<IQueryable<TSource>, IOrderedQueryable<TSource>> orderBy = null,
             string includeProperties = null
         );
 
-        Task<ApiResponseDto<TResponse>> GetAll<TResponse>(
+        Task<ApiResponseDto<TResponse>> GetAllWithPaging<TResponse>(
             int pageIndex = 0,
             int pageSize = 10,
             string filterColumn = null,

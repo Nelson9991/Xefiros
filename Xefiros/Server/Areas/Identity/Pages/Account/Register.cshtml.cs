@@ -59,6 +59,7 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account
             [Required(ErrorMessage = "El nombre es requerido")]
             public string Nombre { get; set; }
 
+            [Required(ErrorMessage = "El campo apellidos es requerido")]
             public string Apellidos { get; set; }
         }
 

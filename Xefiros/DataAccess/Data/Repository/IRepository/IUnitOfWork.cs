@@ -8,6 +8,7 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
         public IClienteRepository ClienteRepository { get; }
         public IProductoRepository ProductoRepository { get; }
         public IVentasRepository VentasRepository { get; }
+        public IUsuarioRepository UsuarioRepository { get; }
         Task SaveAsync();
     }
 }

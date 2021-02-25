@@ -1,0 +1,100 @@
+﻿@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@inject DialogService DialogService
+
+<h3 class="text-radzen-primary m-0 p-0 mb-3">Productos</h3>
+<div class="container-fluid">
+	<div class="row mb-3">
+		<RadzenGrid Data="_productoForVentaList" PageSize="5" AllowFiltering="true" AllowPaging="true" AllowSorting="true" FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive" ColumnWidth="165px">
+			<Columns>
+				<RadzenGridColumn TItem="ProductoForVentaDto" Sortable="false" Filterable="false" Width="40px">
+					<HeaderTemplate>
+						<RadzenCheckBox TriState="false" TValue="bool" Value="@_productoForVentaList.Any(x => _productosSelecTemp.Any(y => y.Id == x.Id))" Change="@((e) => OnCheckAllChange(e))"></RadzenCheckBox>
+					</HeaderTemplate>
+					<Template Context="prod">
+						<RadzenCheckBox TriState="false" TValue="bool" Value="@(_productosSelecTemp.Any(x => x.Id == prod.Id))" Change="(e) => OnProdCheckChange(e, prod)"/>
+					</Template>
+				</RadzenGridColumn>
+				<RadzenGridColumn TItem="ProductoForVentaDto" Property="Codigo" Title="Código"/>
+				<RadzenGridColumn TItem="ProductoForVentaDto" Property="Nombre" Width="255px" Title="Nombre"/>
+				<RadzenGridColumn TItem="ProductoForVentaDto" Property="Stock" Title="Stock"/>
+				<RadzenGridColumn TItem="ProductoForVentaDto" Property="Precio" FormatString="{0:C}" Title="Precio"/>
+			</Columns>
+		</RadzenGrid>
+	</div>
+	<div class="row">
+		<div class="col-12 text-right">
+			<RadzenButton Icon="add" Text="Agregar" Click="@(() => AgregarProductos())"></RadzenButton>
+			<RadzenButton Text="Cancelar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => DialogService.Close(false))"></RadzenButton>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public EventCallback<List<ProductoForVentaDto>> OnAgregarProductos { get; set; }
+
+	[Parameter]
+	public List<ProductoForVentaDto> ProductosSeleccionados { get; set; }
+
+	private List<ProductoForVentaDto> _productoForVentaList = new();
+	private List<ProductoForVentaDto> _productosSelecTemp = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var httpResp = await HttpRepository.Get<List<ProductoForVentaDto>>("api/productos/venta");
+
+			if (httpResp.Error)
+			{
+				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
+				DialogService.Close(false);
+			}
+			else
+			{
+				_productoForVentaList = httpResp.Response;
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			await JsRuntime.ToastrFailure("Error al obtener los productos!");
+			DialogService.Close(false);
+		}
+
+		_productosSelecTemp.AddRange(ProductosSeleccionados);
+	}
+
+	private void OnCheckAllChange(bool isSelected)
+	{
+		if (isSelected)
+		{
+			_productosSelecTemp.AddRange(_productoForVentaList);
+		}
+		else
+		{
+			_productosSelecTemp.Clear();
+		}
+	}
+
+	private void OnProdCheckChange(bool isSelected, ProductoForVentaDto prod)
+	{
+		if (isSelected)
+		{
+			_productosSelecTemp.Add(prod);
+		}
+		else
+		{
+			_productosSelecTemp.RemoveAll(x => x.Id == prod.Id);
+		}
+	}
+
+	private async Task AgregarProductos()
+	{
+		await OnAgregarProductos.InvokeAsync(_productosSelecTemp);
+		DialogService.Close(false);
+	}
+
+}

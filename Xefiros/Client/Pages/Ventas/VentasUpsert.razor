@@ -1,0 +1,543 @@
+﻿@page "/ventas/crear"
+@page "/ventas/editar/{id:int}"
+@using ButtonType = Radzen.ButtonType
+@using System.Security.Claims
+@inject NavigationManager NavigationManager
+@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@inject DialogService DialogService
+@attribute [Authorize]
+
+<h2 class="text-radzen-secondary mb-2">@_title Venta</h2>
+<div class="row">
+	<div class="col-md-12">
+		@if (_clientesList is null)
+		{
+			<p><i class="fas fa-spinner fa-spin"></i> Cargando...</p>
+		}
+		else
+		{
+			<RadzenCard>
+				<RadzenTemplateForm Context="VentaContext" id="venta-form" Data="@_ventaCreateDto" TItem="VentaCreateDto">
+					<DataAnnotationsValidator />
+					<div class="row">
+						<div class="col-6">
+							<div class="mb-3">
+								<RadzenLabel Text="Cliente"></RadzenLabel>
+								<RadzenDropDownDataGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="_ventaCreateDto.ClienteId" Data="_clientesList" TextProperty="ClienteDetalles" ValueProperty="Id" SearchText="Buscar..." Placeholder="Seleccione un cliente" Style="width: 100%">
+									<Columns>
+										<RadzenDropDownDataGridColumn Property="Nombres" Title="Nombres" Width="150px" />
+										<RadzenDropDownDataGridColumn Property="Apellidos" Title="Apellidos" Width="150px" />
+										<RadzenDropDownDataGridColumn Property="Cedula" Title="Cédula" Width="120px" />
+									</Columns>
+								</RadzenDropDownDataGrid>
+								<ValidationMessage For="() => _ventaCreateDto.ClienteId" />
+							</div>
+							<div class="mb-3">
+								<RadzenLabel Text="Tipo de comprobante" />
+								<RadzenDropDown AllowClear="false" Style="display: block" TValue="string" Data="@(new List<string>() {"Factura", "Nota de venta"})" @bind-Value="_ventaCreateDto.TipoComprobante"></RadzenDropDown>
+								<ValidationMessage For="() => _ventaCreateDto.TipoComprobante" />
+							</div>
+							<div class="mb-3">
+								<RadzenLabel Text="Número de comprobante" />
+								<RadzenTextBox @bind-Value="_ventaCreateDto.NumeroComprobante" Style="display: block; width: 100%;"></RadzenTextBox>
+								<ValidationMessage For="() => _ventaCreateDto.NumeroComprobante" />
+							</div>
+							<div class="mb-3">
+								<RadzenLabel Text="Estado" />
+								<RadzenDropDown AllowClear="false" Style="display: block" TValue="string" Data="@(new List<string>() {"pagada", "por pagar"})" @bind-Value="_ventaCreateDto.Estado"></RadzenDropDown>
+								<ValidationMessage For="() => _ventaCreateDto.Estado" />
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="mb-3">
+								<RadzenLabel Text="Fecha de Venta" />
+								<RadzenDatePicker DateFormat="d" Style="width: 100%" @bind-Value="_ventaCreateDto.FechaVenta"></RadzenDatePicker>
+								<ValidationMessage For="() => _ventaCreateDto.FechaVenta" />
+							</div>
+							<div class="mb-3">
+								<RadzenLabel Text="Impuesto (IVA)" />
+								<RadzenNumeric @bind-Value="_ventaCreateDto.Impuesto" Style="display: block; width: 100%;"></RadzenNumeric>
+								<ValidationMessage For="() => _ventaCreateDto.Impuesto" />
+							</div>
+							<div class="mb-3">
+								<RadzenButton Style="display: block;" ButtonStyle="@ButtonStyle.Success" Icon="local_grocery_store" Text="Agregar Productos a la Venta" Click="@(() => DialogService.OpenAsync<ProductosVentaDialog>("Agregar", new Dictionary<string, object>() {{"OnAgregarProductos", OnAgregarProductos}, {"ProductosSeleccionados", _productosSeleccionados}}, new DialogOptions() {Width = "850px", Height = "400px"}))"></RadzenButton>
+							</div>
+						</div>
+					</div>
+					<div class="border p-3">
+						<h3 class="text-radzen-secondary mb-3">Detalles de la Venta</h3>
+						<RadzenGrid @ref="_detallesGrid" Data="@_detallesVentaList" AllowFiltering="true" AllowPaging="true" AllowSorting="true" PageSize="5" EmptyText="No hay detalles que mostrar" ColumnWidth="120px" FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive" EditMode="DataGridEditMode.Single">
+							<Columns>
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="CodigoProducto" Width="150px" Title="Cod Producto" />
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="Descripcion" Width="255px" Title="Nombre" />
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="StockProducto" Title="Stock" />
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="Cantidad" Title="Cantidad">
+									<Template Context="prod">
+										<RadzenNumeric TValue="int" @bind-Value="prod.Cantidad" Change="@((e) => OnCantidadChange(e, prod.StockProducto))" Min="1" Max="prod.StockProducto"></RadzenNumeric>
+									</Template>
+								</RadzenGridColumn>
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="PrecioUnitario" Width="150px" FormatString="{0:C}" Title="Precio">
+									<Template Context="prod">
+										<RadzenNumeric @bind-Value="prod.PrecioUnitario" Min="0.00M"></RadzenNumeric>
+									</Template>
+								</RadzenGridColumn>
+								<RadzenGridColumn TItem="DetalleVentaDto" Width="150px" Property="Descuento" FormatString="{0:C}" Title="Descuento">
+									<Template Context="prod">
+										<RadzenNumeric @bind-Value="prod.Descuento" Min="0.00M"></RadzenNumeric>
+									</Template>
+								</RadzenGridColumn>
+								<RadzenGridColumn TItem="DetalleVentaDto" Property="Total" Width="150px" FormatString="{0:C}" Title="Total">
+									<Template Context="prod">
+										@{
+											var total = prod.Cantidad * prod.PrecioUnitario - prod.Descuento;
+										}
+										@total.ToString("C")
+									</Template>
+								</RadzenGridColumn>
+							</Columns>
+						</RadzenGrid>
+						<div class="col-12 p-0 text-right mt-2">
+							@if (_detallesVentaList is not null && _detallesVentaList.Count > 0)
+							{
+								_subTotales.Clear();
+								foreach (var producto in _detallesVentaList)
+								{
+									_subTotales.Add(producto.Cantidad * producto.PrecioUnitario - producto.Descuento);
+								}
+
+								var totalDetalles = _subTotales.Sum();
+								var iva = totalDetalles * _ventaCreateDto.Impuesto;
+
+								_totalVenta = totalDetalles + iva;
+
+								<div class="mb-1">
+									Subtotal : @totalDetalles.ToString("C")
+								</div>
+								<div class="mb-1">
+									IVA 12% : @iva.ToString("C")
+								</div>
+
+								<div class="mb-1">
+									Total : @_totalVenta.ToString("C")
+								</div>
+							}
+						</div>
+					</div>
+					@if (_totalVenta > 0)
+					{
+
+
+						<div class="border mt-3 p-3">
+							<h3 class="text-radzen-secondary mb-3">Registro de Abonos</h3>
+							<div class="row mb-3">
+								<div class="col-12 text-left mb-2">
+									<RadzenButton Icon="add" ButtonStyle="@ButtonStyle.Success" Text="Agregar" Click="@InsertRow"></RadzenButton>
+								</div>
+								<div class="col-12">
+									<RadzenGrid @ref="								_abonosGrid" Data="@_abonosList" AllowFiltering="true" AllowPaging="true" AllowSorting="true" EqualsText="Igual" NotEqualsText="Diferente" LessThanText="Menor que" LessThanOrEqualsText="Menor o Igual" GreaterThanText="Mayor que" GreaterThanOrEqualsText="Mayor o igual" ClearFilterText="Limpiar" ApplyFilterText="Aplicar" EmptyText="No hay datos que mostrar" FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive" PageSize="4" EditMode="@DataGridEditMode.Single" TItem="Abono" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+										<Columns>
+											<RadzenGridColumn Width="100px" TItem="Abono" Property="FechaAbono" Title="Fecha Abono">
+												<Template Context="abono">
+													@abono.FechaAbono.ToString("d")
+												</Template>
+												<EditTemplate Context="abono">
+													<RadzenDatePicker @bind-Value="abono.FechaAbono" DateFormat="d" Style="width: 100%" />
+												</EditTemplate>
+											</RadzenGridColumn>
+											<RadzenGridColumn Width="150px" TItem="Abono" Property="CantidadAbono" Title="Cantidad Abonada">
+												<Template Context="abono">
+													@abono.CantidadAbono.ToString("C")
+												</Template>
+												<EditTemplate Context="abono">
+													<RadzenNumeric Name="CantidadAbono" @bind-Value="abono.CantidadAbono" Style="width: 100%;" TValue="decimal" Min="0.10M" Change="@((e)=> OnAbonoCantidadChange(e, abono))" />
+													<RadzenRequiredValidator Text="Debe ingresar una cantidad válida" Component="CantidadAbono" Popup="true" />
+													<RadzenNumericRangeValidator Component="CantidadAbono" Min="1.00M" Text="Ingrese un abono mayor a 0" Popup="true" />
+												</EditTemplate>
+											</RadzenGridColumn>
+											<RadzenGridColumn TItem="Abono" Bubble="false" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
+												<Template Context="abono">
+													<RadzenButton Icon="edit" Click="@(args => EditRow(abono))"></RadzenButton>
+												</Template>
+												<EditTemplate Context="abono">
+													<RadzenButton Icon="save" Click="@((args) => SaveRow(abono))">
+													</RadzenButton>
+													<RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Danger" Click="@((args) => CancelEdit(abono))">
+													</RadzenButton>
+												</EditTemplate>
+											</RadzenGridColumn>
+											<RadzenGridColumn TItem="Abono" Context="abono" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+												<Template Context="abono">
+													<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Click="@(args => DeleteRow(abono))">
+													</RadzenButton>
+												</Template>
+												<EditTemplate Context="abono">
+													<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Click="@(args => DeleteRow(abono))">
+													</RadzenButton>
+												</EditTemplate>
+											</RadzenGridColumn>
+										</Columns>
+									</RadzenGrid>
+								</div>
+							</div>
+						</div>
+					}
+					<div class="mt-3">
+						<RadzenButton ButtonType="@ButtonType.Button" Click="@(() => HandleUpsert(VentaContext))" Icon="@(_ventaCreateDto.Id == 0 ? "save" : "update")" Text="@(_ventaCreateDto.Id == 0 ? "Crear Venta" : "Actualizar Venta")" Style="margin-right: 4px;"></RadzenButton>
+						<RadzenButton Icon="keyboard_backspace" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => NavigationManager.NavigateTo("ventas"))"></RadzenButton>
+					</div>
+				</RadzenTemplateForm>
+			</RadzenCard>
+		}
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int? Id { get; set; }
+	[CascadingParameter]
+	public Task<AuthenticationState> AuthenticationState { get; set; }
+
+	private VentaCreateDto _ventaCreateDto = new();
+	private List<ClienteDropDownDto> _clientesList = new();
+	private List<DetalleVentaDto> _detallesVentaList = new();
+	private List<DetalleVentaDto> _detallesVentaParaEliminar = new();
+	private List<RegistroCantidadDto> _registroCantidadProds = new();
+	private List<ProductoForVentaDto> _productosSeleccionados = new();
+	private List<Abono> _abonosList = new();
+	private List<decimal> _subTotales = new();
+	private RadzenGrid<Abono> _abonosGrid;
+	private IJSInProcessRuntime _jsInProcessRuntime;
+	private decimal _totalVenta;
+	private decimal _totalAbonado;
+	private decimal _cantidadPagar;
+	private string _title = "Crear";
+	private RadzenGrid<DetalleVentaDto> _detallesGrid;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_jsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+		_ventaCreateDto.Abonos = new List<Abono>();
+		_ventaCreateDto.Detalles = new List<DetalleVenta>();
+		try
+		{
+			var httpRespClientes = await HttpRepository.Get<List<ClienteDropDownDto>>("api/clientes/dropdown");
+			_clientesList = httpRespClientes.Response;
+
+			if (Id is not null)
+			{
+				_title = "Editar";
+
+				var httpRespVenta = await HttpRepository.Get<VentaCreateDto>($"api/ventas/upsert/{Id.Value}");
+
+				if (httpRespVenta.Error)
+				{
+					await JsRuntime.ToastrFailure(await httpRespVenta.GetResponseBody());
+				}
+				else
+				{
+					_ventaCreateDto = httpRespVenta.Response;
+					_abonosList = _ventaCreateDto.Abonos;
+				}
+
+				var httpRespDetalles = await HttpRepository.Get<List<DetalleVentaDto>>($"api/ventas/{Id.Value}/detalles");
+				if (httpRespDetalles.Error)
+				{
+					await JsRuntime.ToastrFailure(await httpRespDetalles.GetResponseBody());
+				}
+				else
+				{
+					_detallesVentaList = httpRespDetalles.Response;
+					_registroCantidadProds = _detallesVentaList.Select(x => new RegistroCantidadDto()
+					{
+						ProductoId = x.ProductoId,
+						Cantidad = x.Cantidad
+					}).ToList();
+					_productosSeleccionados = _detallesVentaList.Select(x => new ProductoForVentaDto()
+					{
+						Cantidad = x.Cantidad,
+						Codigo = x.CodigoProducto,
+						Id = x.ProductoId,
+						Stock = x.StockProducto,
+						Nombre = x.Descripcion,
+						Precio = x.PrecioUnitario,
+					}).ToList();
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			await JsRuntime.ToastrFailure("Error al obtener los datos!");
+		}
+	}
+
+	private EventCallback<List<ProductoForVentaDto>> OnAgregarProductos => new(null, (Action<List<ProductoForVentaDto>>)((productosSeleccionados) =>
+	{
+
+		foreach (var productoSeleccionado in productosSeleccionados)
+		{
+			if (_detallesVentaList.FirstOrDefault(x => x.Descripcion.ToLower() == productoSeleccionado.Nombre.ToLower()) is null)
+			{
+				_detallesVentaList.Add(new DetalleVentaDto()
+				{
+					CodigoProducto = productoSeleccionado.Codigo,
+					Descripcion = productoSeleccionado.Nombre,
+					PrecioUnitario = productoSeleccionado.Precio,
+					StockProducto = productoSeleccionado.Stock,
+					ProductoId = productoSeleccionado.Id
+
+				});
+
+			}
+		}
+
+		if (_detallesVentaList.Count > productosSeleccionados.Count)
+		{
+			var listaTemp = _detallesVentaList;
+			foreach (var detalleVenta in listaTemp.ToList())
+			{
+				if (!productosSeleccionados.Exists(x => x.Id == detalleVenta.ProductoId))
+				{
+					if (_detallesVentaParaEliminar.Exists(x => x.Id == detalleVenta.Id))
+					{
+						_detallesVentaParaEliminar.Remove(detalleVenta);
+					}
+					_detallesVentaParaEliminar.Add(detalleVenta);
+
+					_detallesVentaList.Remove(detalleVenta);
+
+				}
+			}
+		}
+
+		_productosSeleccionados = productosSeleccionados;
+		_detallesGrid.Reload();
+	}));
+
+	private async Task OnCantidadChange(int cantidad, int stock)
+	{
+		if (stock - cantidad < 0)
+		{
+			await JsRuntime.ToastrFailure("Stock insuficiente");
+		}
+	}
+
+	private void EditRow(Abono abono)
+	{
+		_abonosGrid.EditRow(abono);
+	}
+
+	private void OnUpdateRow(Abono abono)
+	{
+		if (_abonosList.Any(x => x.Id == abono.Id))
+		{
+			_abonosList.Remove(abono);
+		}
+		_abonosList.Add(abono);
+		_abonosGrid.Reload();
+	}
+
+	private void SaveRow(Abono abono)
+	{
+		_abonosGrid.UpdateRow(abono);
+	}
+
+	private void CancelEdit(Abono abono)
+	{
+		_abonosGrid.CancelEditRow(abono);
+	}
+
+	private async Task DeleteRow(Abono abono)
+	{
+		_abonosList.Remove(abono);
+		if (abono.Id == 0)
+		{
+			_abonosGrid.Reload();
+		}
+		else
+		{
+			var httpResp = await HttpRepository.Delete($"api/ventas/abonos/{abono.Id}");
+
+			if (httpResp.Error)
+			{
+				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
+				_abonosGrid.CancelEditRow(abono);
+			}
+			else
+			{
+				_abonosGrid.Reload();
+			}
+		}
+	}
+
+	private void InsertRow()
+	{
+		_abonosGrid.InsertRow(new Abono());
+	}
+
+	private void OnCreateRow(Abono abono)
+	{
+		_abonosList.Add(abono);
+
+		_abonosGrid.Reload();
+	}
+
+	private async Task HandleUpsert(EditContext editContext)
+	{
+		if (editContext.Validate())
+		{
+
+
+			if (_detallesVentaList.Count == 0)
+			{
+				await JsRuntime.SwalFailure("Debe ingresar almenos un detalle", "Error!");
+				return;
+			}
+			if (_abonosList.Count == 0)
+			{
+				await JsRuntime.SwalFailure("Debe ingresar almenos un abono", "Error!");
+				return;
+			}
+
+			var authState = await AuthenticationState;
+
+
+			try
+			{
+				_ventaCreateDto.Total = _totalVenta;
+				_ventaCreateDto.TotalAbonado = _abonosList.Sum(x => x.CantidadAbono);
+				_ventaCreateDto.CantidadPagar = _ventaCreateDto.Total - _ventaCreateDto.TotalAbonado;
+				_ventaCreateDto.Abonos = _abonosList;
+
+				_ventaCreateDto.Detalles = _detallesVentaList.Select(x => new DetalleVenta()
+				{
+					Total = (x.Cantidad * x.PrecioUnitario - x.Descuento),
+					Cantidad = x.Cantidad,
+					Descuento = x.Descuento,
+					Id = x.Id,
+					ProductoId = x.ProductoId,
+					Precio = x.PrecioUnitario,
+					VentaId = Id ?? 0
+				}).ToList();
+
+				_jsInProcessRuntime.SwalShowLoading();
+				if (_ventaCreateDto.Id != 0 && Id is not null)
+				{
+					foreach (var detalleVentaDto in _detallesVentaList)
+					{
+						if (_registroCantidadProds.Exists(x => x.ProductoId == detalleVentaDto.ProductoId && x.Cantidad < detalleVentaDto.Cantidad))
+						{
+
+							var cantidadDetalleOriginal = _registroCantidadProds.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
+							var cantidadDetalleActual = _ventaCreateDto.Detalles.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
+							if (cantidadDetalleActual > cantidadDetalleOriginal)
+							{
+								await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad - cantidadDetalleOriginal);
+							}
+						}
+
+						if (_registroCantidadProds.FirstOrDefault(x => x.ProductoId == detalleVentaDto.ProductoId) is null)
+						{
+							await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
+						}
+
+					}
+
+					var httpRespUpdate = await HttpRepository.Put<VentaCreateDto, DataResponse<string>>($"api/ventas/editar/{Id.Value}", _ventaCreateDto);
+
+					if (httpRespUpdate.Error)
+					{
+						var responseMessage = await httpRespUpdate.GetResponseBody();
+						await JsRuntime.ToastrFailure(responseMessage);
+						return;
+					}
+
+					if (_detallesVentaParaEliminar.Count > 0)
+					{
+						foreach (var detalleVentaDto in _detallesVentaParaEliminar)
+						{
+							await HttpRepository.Delete($"api/ventas/detalles/{detalleVentaDto.Id}");
+						}
+					}
+
+					await JsRuntime.ToastrSuccess(httpRespUpdate.Response.Message);
+
+				}
+				else
+				{
+					_ventaCreateDto.UserId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier).Value;
+					_ventaCreateDto.UserName = authState.User.FindFirst(x => x.Type == ClaimTypes.Name).Value;
+
+					var httpRespCreate = await HttpRepository.Post("api/ventas/crear", _ventaCreateDto);
+
+					if (httpRespCreate.Error)
+					{
+						var responseMessage = await httpRespCreate.GetResponseBody();
+						await JsRuntime.ToastrFailure(responseMessage);
+						return;
+					}
+
+					foreach (var detalleVentaDto in _detallesVentaList)
+					{
+						await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
+
+					}
+					await JsRuntime.ToastrSuccess("Venta creada con éxito");
+				}
+
+				_jsInProcessRuntime.SwalCloseLoading();
+				NavigationManager.NavigateTo("ventas");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				await JsRuntime.ToastrFailure("Error al guardar los datos!");
+			}
+		}
+	}
+
+	private void OnAbonoCantidadChange(decimal cantidad, Abono abono)
+	{
+		if (_abonosGrid.Data.Count() == 0)
+		{
+			if (cantidad > _totalVenta)
+			{
+				abono.CantidadAbono = _totalVenta;
+			}
+		}
+		else
+		{
+			if (_abonosGrid.Data.Count() == 1 && abono.Id > 0)
+			{
+				if (cantidad > _totalVenta)
+				{
+					abono.CantidadAbono = _totalVenta;
+				}
+			}
+			else
+			{
+				var abonosAnteriores = 0.0M;
+
+				if (_abonosGrid.Data.Any(x => x.CantidadAbono == abono.CantidadAbono))
+				{
+					abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono));
+				}
+				else
+				{
+					abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono) + abono.CantidadAbono);
+				}
+
+				if (abonosAnteriores < 0)
+				{
+					abono.CantidadAbono = abono.CantidadAbono + abonosAnteriores;
+				}
+
+			}
+
+		}
+
+	}
+
+}

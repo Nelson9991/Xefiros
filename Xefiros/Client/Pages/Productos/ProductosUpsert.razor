@@ -10,7 +10,7 @@
 @inject IReadImage ReadImage
 @attribute [Authorize]
 
-<h3 class="card-text text-radzen-secondary mb-2">@_title Producto</h3>
+<h2 class="text-radzen-secondary mb-2">@_title Producto</h2>
 <div class="row">
 	<div class="col-md-12">
 		<RadzenCard>
@@ -54,8 +54,18 @@
 							}
 						</div>
 						<div>
-							<RadzenButton ButtonType="@ButtonType.Submit" Icon="@(_productoDto.Id == 0 ? "save" : "update")" Text="@(_productoDto.Id == 0 ? "Crear Producto" : "Actualizar Producto")" Style="margin-right: 4px;"></RadzenButton>
-							<RadzenButton Icon="keyboard_backspace" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => NavigationManager.NavigateTo("productos"))"></RadzenButton>
+							<RadzenButton
+								ButtonType="@ButtonType.Submit"
+								Icon="@(_productoDto.Id == 0 ? "save" : "update")"
+								Text="@(_productoDto.Id == 0 ? "Crear Producto" : "Actualizar Producto")"
+								Style="margin-right: 4px;">
+							</RadzenButton>
+							<RadzenButton
+								Icon="keyboard_backspace"
+								Text="Regresar"
+								ButtonStyle="@ButtonStyle.Danger"
+								Click="@(() => NavigationManager.NavigateTo("productos"))">
+							</RadzenButton>
 						</div>
 					</RadzenTemplateForm>
 				</div>

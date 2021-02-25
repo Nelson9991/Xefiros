@@ -23,15 +23,27 @@ namespace Xefiros.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponseDto<ProductoDto>>> GetAllAsync(
+        public async Task<ActionResult<ApiResponseDto<ProductoDto>>> GetAllWithPagingAsync(
             int pageIndex = 0,
             int pageSize = 10,
             string filterColumn = null,
             string filterQuery = null,
             string includeProperties = null)
         {
-            return await _unitOfWork.ProductoRepository.GetAll<ProductoDto>(pageIndex, pageSize, filterColumn,
+            return await _unitOfWork.ProductoRepository.GetAllWithPaging<ProductoDto>(pageIndex, pageSize, filterColumn,
                 filterQuery);
+        }
+
+        [HttpGet("all")]
+        public async Task<ActionResult<List<ProductoDto>>> GetAllNoPagingAsync()
+        {
+            return await _unitOfWork.ProductoRepository.GetAllNoPaging<ProductoDto>();
+        }
+
+        [HttpGet("venta")]
+        public async Task<ActionResult<List<ProductoForVentaDto>>> GetAllForVentaAsync()
+        {
+            return await _unitOfWork.ProductoRepository.ObtenerProductosParaVenta();
         }
 
         [HttpGet("{id:int}")]
@@ -51,6 +63,19 @@ namespace Xefiros.Server.Controllers
         public async Task<bool> ExisteProducto(int id, string codigo)
         {
             return await _unitOfWork.ProductoRepository.ExisteProductoCodigo(codigo, id);
+        }
+
+        [HttpPost("disminuir-stock/{id:int}")]
+        public async Task<IActionResult> DisminuirStockAsync([FromRoute] int id, [FromBody] int cantidadDisminuir)
+        {
+            var response = await _unitOfWork.ProductoRepository.DisminuirStock(id, cantidadDisminuir);
+
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return Ok();
         }
 
         [HttpPost("crear")]

@@ -59,14 +59,11 @@ namespace Xefiros.Server
 
 
             services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>()
+                .AddProfileService<IdentityProfileService>();
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
-
-            services.AddRazorPages()
-                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-                .AddDataAnnotationsLocalization();
 
             services.AddControllersWithViews()
                 .AddJsonOptions(opts =>

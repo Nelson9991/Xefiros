@@ -1,0 +1,56 @@
+﻿@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@inject DialogService DialogService
+
+<h3 class="text-radzen-secondary">Abonos</h3>
+
+<div class="row mt-3">
+	<div class="col-12">
+		<RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="5" EqualsText="Igual" NotEqualsText="Diferente" LessThanText="Menor que" LessThanOrEqualsText="Menor o Igual" GreaterThanText="Mayor que" GreaterThanOrEqualsText="Mayor o igual" ClearFilterText="Limpiar" ApplyFilterText="Aplicar" EmptyText="No hay datos que mostrar" 
+		            AllowSorting="true" Data="@_abonos" TItem="AbonoDto" ColumnWidth="200px">
+			<Columns>
+				<RadzenGridColumn TItem="AbonoDto" Property="FechaAbono" FormatString="{0:d}" Title="Fecha Abono"/>
+				<RadzenGridColumn TItem="AbonoDto" Property="CantidadAbono" FormatString="{0:C}" Title="Monto Abonado"/>
+			</Columns>
+		</RadzenGrid>
+	</div>
+	<div class="col-12 text-right mt-3">
+		<RadzenButton Icon="arrow_back" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => DialogService.Close(false))"></RadzenButton>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int VentaId { get; set; }
+
+	private List<AbonoDto> _abonos = new();
+	private List<AbonoDto> _abonosFull = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		var httpResp = await HttpRepository.Get<List<AbonoDto>>($"api/ventas/{VentaId}/abonos");
+
+		if (httpResp.Error)
+		{
+			await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
+			DialogService.Close(false);
+		}
+		else
+		{
+			_abonosFull = httpResp.Response;
+			_abonos = httpResp.Response;
+		}
+	}
+
+	private void FilterByDate(DateTime? dateTime)
+	{
+		_abonos = _abonosFull;
+		if (dateTime is not null)
+		{
+			_abonos = _abonos.Where(x => x.FechaAbono == dateTime).ToList();
+		}
+	}
+
+}
+

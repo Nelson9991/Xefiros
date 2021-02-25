@@ -22,7 +22,5 @@ namespace Xefiros.Shared.Dtos
         public decimal CantidadPagar { get; set; }
         public string Estado { get; set; }
         public Cliente Cliente { get; set; }
-        public IList<Abono> Abonos { get; set; }
-        public IList<DetalleVenta> Detalles { get; set; }
     }
 }

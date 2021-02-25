@@ -1,3 +1,104 @@
 ﻿@page "/"
+@using System.Globalization
+@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@attribute [Authorize]
+<div class="text-center">
+    <h1 class="text-radzen-secondary mb-3">Bienvenido!</h1>
+    <p class="">
+        Consulte sus ventas <a href="/ventas" class="nav-link d-inline-block px-0 mx-0">aquí</a>
+    </p>
+</div>
 
-<h1 class="text-radzen-secondary mb-3">Bienvenido!</h1>
+@if (_resumenVentasPorTrimestre is null || _resumenVentasAnuales is null)
+{
+    <p>
+        Cargando...
+        <i class="fas fa-spinner fa-spin"></i>
+    </p>
+}
+else
+{
+    <div class="row pt-3">
+        <div class="col-6">
+            <h3 class="text-radzen-secondary mb-2 text-center">Resumen Trimestral de Ventas</h3>
+            <RadzenChart>
+                <RadzenColumnSeries Data="@_resumenTrimestre" TItem="VentasTrimestreDto" Title="@($"Ventas {DateTime.Now.Year}")" CategoryProperty="Trimestre" ValueProperty="Ventas" LineType="LineType.Solid"/>
+                <RadzenColumnOptions Radius="5"/>
+                <RadzenValueAxis Formatter="@FormatAsUSD">
+                    <RadzenGridLines Visible="true"/>
+                    <RadzenAxisTitle Text="Cantidad en USD"/>
+                </RadzenValueAxis>
+            </RadzenChart>
+        </div>
+        <div class="col-6">
+            <h3 class="text-radzen-secondary mb-2 text-center">Resumen Ventas anuales</h3>
+            <RadzenChart>
+                <RadzenLineSeries Smooth="true" Data="@_resumenVentasAnuales.AnioAnterior" CategoryProperty="Fecha" Title="@(DateTime.Now.AddYears(-1).Year.ToString())" LineType="LineType.Solid" ValueProperty="TotalVentas">
+                    <RadzenMarkers MarkerType="MarkerType.Circle"/>
+                </RadzenLineSeries>
+                <RadzenLineSeries Smooth="true" Data="_resumenVentasAnuales.AnioActual" CategoryProperty="Fecha" Title="@(DateTime.Now.Year.ToString())" ValueProperty="TotalVentas">
+                    <RadzenMarkers MarkerType="MarkerType.Circle"/>
+                </RadzenLineSeries>
+                <RadzenCategoryAxis Padding="20" FormatString="{0:MMM}"/>
+                <RadzenValueAxis Formatter="@FormatAsUSD">
+                    <RadzenGridLines Visible="true"/>
+                    <RadzenAxisTitle Text="Cantidad en USD"/>
+                </RadzenValueAxis>
+            </RadzenChart>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<VentasTrimestreDto> _resumenTrimestre;
+    private ResumenVentasPorTrimestreDto _resumenVentasPorTrimestre;
+    private ResumenVentasAnualesDto _resumenVentasAnuales;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpVentasTriResp = await HttpRepository.Get<ResumenVentasPorTrimestreDto>("api/ventas/ventasTrimestre");
+
+            if (httpVentasTriResp.Error)
+            {
+                await JsRuntime.ToastrFailure("Error al obtener la información");
+            }
+            else
+            {
+                _resumenVentasPorTrimestre = httpVentasTriResp.Response;
+
+                _resumenTrimestre = new List<VentasTrimestreDto>()
+            {
+                new VentasTrimestreDto() {Trimestre = "T1", Ventas = _resumenVentasPorTrimestre.VentasQ1},
+                new VentasTrimestreDto() {Trimestre = "T2", Ventas = _resumenVentasPorTrimestre.VentasQ2},
+                new VentasTrimestreDto() {Trimestre = "T3", Ventas = _resumenVentasPorTrimestre.VentasQ3},
+                new VentasTrimestreDto() {Trimestre = "T4", Ventas = _resumenVentasPorTrimestre.VentasQ4}
+            };
+            }
+
+
+            var httpVentasAnualResp = await HttpRepository.Get<ResumenVentasAnualesDto>("api/ventas/ventasAnuales");
+            if (httpVentasAnualResp.Error)
+            {
+                await JsRuntime.ToastrFailure("Error al obtener la información");
+            }
+            else
+            {
+                _resumenVentasAnuales = httpVentasAnualResp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+    private string FormatAsUSD(object value)
+    {
+        return ((double) value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+}

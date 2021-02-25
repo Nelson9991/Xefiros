@@ -24,7 +24,7 @@
 			<HayRegistrosCompleto>
 				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_clientesDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="ClienteDto">
 					<Columns>
-						<RadzenGridColumn TItem="ClienteDto" FilterProperty="Nombres" Property="Nombres" Title="Nombres" />
+						<RadzenGridColumn TItem="ClienteDto" Property="Nombres" Title="Nombres" />
 						<RadzenGridColumn TItem="ClienteDto" Property="Apellidos" Title="Apellidos" />
 						<RadzenGridColumn TItem="ClienteDto" Property="Cedula" Title="Cédula" />
 						<RadzenGridColumn TItem="ClienteDto" Property="PhoneNumber" Title="Teléfono" />
@@ -59,14 +59,13 @@
 
 	private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
 	{
-		Console.WriteLine(pageSize);
 		var url = $"api/clientes?pageIndex={pageIndex}&pageSize={pageSize}";
 
 		var response = await HttpRepository.Get<ApiResponseDto<ClienteDto>>(url);
 
 		if (response.Error)
 		{
-			Console.WriteLine("No se pudo obtener la informacion");
+			await JsRuntime.ToastrFailure(await response.GetResponseBody());;
 		}
 		else
 		{

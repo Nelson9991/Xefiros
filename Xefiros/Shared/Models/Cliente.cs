@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Xefiros.Shared.Models
 {
@@ -24,6 +25,6 @@ namespace Xefiros.Shared.Models
         [RegularExpression(@"^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$")]
         public string PhoneNumber { get; set; }
 
-        public IList<Venta> Ventas { get; set; }
+        [JsonIgnore] public List<Venta> Ventas { get; set; }
     }
 }

@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Xefiros.DataAccess.Data.Repository.IRepository;
+using Xefiros.Shared.Dtos;
 using Xefiros.Shared.Models;
 using Xefiros.Utility.Helpers;
 
@@ -51,6 +54,18 @@ namespace Xefiros.DataAccess.Data.Repository
             }
 
             return await _context.Clientes.AnyAsync(x => x.Cedula == cedula && x.Id != clienteId);
+        }
+
+        public async Task<List<ClienteDropDownDto>> GetClientesForDropDown()
+        {
+            return await _context.Clientes.Select(x => new ClienteDropDownDto()
+            {
+                Id = x.Id,
+                Nombres = x.Nombres,
+                Apellidos = x.Apellidos,
+                Cedula = x.Cedula,
+                ClienteDetalles = $"{x.Nombres} {x.Apellidos} - Cédula: {x.Cedula}"
+            }).ToListAsync();
         }
     }
 }

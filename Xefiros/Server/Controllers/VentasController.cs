@@ -30,7 +30,7 @@ namespace Xefiros.Server.Controllers
             string filterQuery = null,
             string includeProperties = null)
         {
-            return await _unitOfWork.VentasRepository.GetAll<VentaDto>(pageIndex, pageSize, filterColumn,
+            return await _unitOfWork.VentasRepository.GetAllWithPaging<VentaDto>(pageIndex, pageSize, filterColumn,
                 filterQuery, includeProperties);
         }
 
@@ -40,6 +40,20 @@ namespace Xefiros.Server.Controllers
         {
             var response =
                 await _unitOfWork.VentasRepository.GetFirstOrDefault<VentaDto>(x => x.Id == id, includeProperties);
+
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return response.Data;
+        }
+
+        [HttpGet("upsert/{id:int}")]
+        public async Task<ActionResult<VentaCreateDto>> GetVentaForUpsertAsync(int id)
+        {
+            var response =
+                await _unitOfWork.VentasRepository.GetFirstOrDefault<VentaCreateDto>(x => x.Id == id, "Abonos");
 
             if (!response.Sussces)
             {
@@ -83,6 +97,68 @@ namespace Xefiros.Server.Controllers
             await _unitOfWork.SaveAsync();
             response.Data = null;
             return response;
+        }
+
+        [HttpGet("{ventaId}/abonos")]
+        public async Task<ActionResult<List<AbonoDto>>> GetAbonos(int ventaId)
+        {
+            var response = await _unitOfWork.VentasRepository.ObtenerAbonos(ventaId);
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return response.Data;
+        }
+
+        [HttpDelete("abonos/{abonoId}")]
+        public async Task<ActionResult<string>> DeleteAbono(int abonoId)
+        {
+            var response = await _unitOfWork.VentasRepository.EliminarAbono(abonoId);
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return response.Message;
+        }
+
+        [HttpGet("{ventaId}/detalles")]
+        public async Task<ActionResult<List<DetalleVentaDto>>> GetDetalles(int ventaId)
+        {
+            var response = await _unitOfWork.VentasRepository.ObtenerDetalles(ventaId);
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return response.Data;
+        }
+
+        [HttpGet("ventasTrimestre")]
+        public async Task<ActionResult<ResumenVentasPorTrimestreDto>> GetVentasPorTrimestre()
+        {
+            var response = await _unitOfWork.VentasRepository.GetResumenVentasTrimestral();
+
+            return response.Data;
+        }
+
+        [HttpGet("ventasAnuales")]
+        public async Task<ActionResult<ResumenVentasAnualesDto>> GetVentasAnuales()
+        {
+            return await _unitOfWork.VentasRepository.GetResumenVentasAnual();
+        }
+
+        [HttpDelete("detalles/{detalleVentaId}")]
+        public async Task<ActionResult<string>> DeleteDetalle(int detalleVentaId)
+        {
+            var response = await _unitOfWork.VentasRepository.EliminarDetalle(detalleVentaId);
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+
+            return response.Message;
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,40 @@ namespace Xefiros.DataAccess.Data.Repository
             }
 
             return dataResponse;
+        }
+
+        public async Task<List<ProductoForVentaDto>> ObtenerProductosParaVenta()
+        {
+            return await _context.Productos.Select(x => new ProductoForVentaDto()
+            {
+                Codigo = x.Codigo,
+                Id = x.Id,
+                Nombre = x.Nombre,
+                Stock = x.Stock,
+                Precio = x.Precio,
+            }).ToListAsync();
+        }
+
+        public async Task<DataResponse<string>> DisminuirStock(int prodId, int cantidadDisminuir)
+        {
+            var productoDb = await _context.Productos.FindAsync(prodId);
+
+            if (productoDb is null)
+            {
+                return new DataResponse<string>
+                {
+                    Sussces = false,
+                    Message = "No se encontró el producto"
+                };
+            }
+
+            productoDb.Stock -= cantidadDisminuir;
+            await _context.SaveChangesAsync();
+
+            return new DataResponse<string>()
+            {
+                Sussces = true
+            };
         }
 
         public async Task<DataResponse<string>> Update(int prodId, ProductoDto prodDto)

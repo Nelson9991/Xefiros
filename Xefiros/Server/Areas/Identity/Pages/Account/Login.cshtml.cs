@@ -103,7 +103,7 @@ namespace Xefiros.Server.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "El correo o la cotraseña no son correctos");
+                    ModelState.AddModelError(string.Empty, "El correo o la contraseña no son correctos");
                     return Page();
                 }
             }

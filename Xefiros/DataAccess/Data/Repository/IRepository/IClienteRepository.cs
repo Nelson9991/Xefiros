@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xefiros.Shared.Dtos;
 using Xefiros.Shared.Models;
 using Xefiros.Utility.Helpers;
 
@@ -8,5 +10,6 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
     {
         Task<DataResponse<string>> Update<TDto>(int clienteId, TDto clienteDto) where TDto : class;
         Task<bool> ExisteClienteConCedula(string cedula, int clienteId = 0);
+        Task<List<ClienteDropDownDto>> GetClientesForDropDown();
     }
 }

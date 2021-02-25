@@ -6,6 +6,6 @@ namespace Xefiros.Shared.Models
     public class ApplicationUser : IdentityUser
     {
         [Required] public string Nombre { get; set; }
-        public string Apellidos { get; set; }
+        [Required] public string Apellidos { get; set; }
     }
 }

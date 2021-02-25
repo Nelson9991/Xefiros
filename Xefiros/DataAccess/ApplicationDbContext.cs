@@ -25,12 +25,12 @@ namespace Xefiros.DataAccess
             builder.Entity<Venta>()
                 .HasOne(x => x.Cliente)
                 .WithMany(x => x.Ventas)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<DetalleVenta>()
                 .HasOne(x => x.Producto)
                 .WithMany()
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(builder);
         }
@@ -40,5 +40,6 @@ namespace Xefiros.DataAccess
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
         public DbSet<Abono> Abonos { get; set; }
+        public DbSet<ApplicationUser> Users { get; set; }
     }
 }

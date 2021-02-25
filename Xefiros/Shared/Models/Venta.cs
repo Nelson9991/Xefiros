@@ -20,7 +20,7 @@ namespace Xefiros.Shared.Models
         [Column(TypeName = "decimal(11,2)")] public decimal CantidadPagar { get; set; }
         public string Estado { get; set; }
         public Cliente Cliente { get; set; }
-        public IList<Abono> Abonos { get; set; }
-        public IList<DetalleVenta> Detalles { get; set; }
+        public List<Abono> Abonos { get; set; }
+        public List<DetalleVenta> Detalles { get; set; }
     }
 }

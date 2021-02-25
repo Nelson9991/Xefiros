@@ -12,6 +12,7 @@ namespace Xefiros.DataAccess.Data.Repository
         public IClienteRepository ClienteRepository { get; private set; }
         public IProductoRepository ProductoRepository { get; private set; }
         public IVentasRepository VentasRepository { get; private set; }
+        public IUsuarioRepository UsuarioRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context, IMapper mapper, IFileUpload fileUpload)
         {
@@ -19,6 +20,7 @@ namespace Xefiros.DataAccess.Data.Repository
             ClienteRepository = new ClienteRepository(context, mapper);
             ProductoRepository = new ProductoRepository(context, mapper, fileUpload);
             VentasRepository = new VentaRepository(context, mapper);
+            UsuarioRepository = new UsuarioRepository(context, mapper);
         }
 
         public async Task SaveAsync()

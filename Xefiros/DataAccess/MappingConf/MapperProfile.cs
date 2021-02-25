@@ -14,6 +14,10 @@ namespace Xefiros.DataAccess.MappingConf
             CreateMap<Producto, ProductoDto>();
             CreateMap<Venta, VentaDto>();
             CreateMap<VentaCreateDto, Venta>();
+            CreateMap<Venta, VentaCreateDto>()
+                .ForMember(x => x.Detalles, opts => opts.Ignore());
+            CreateMap<AbonoDto, Abono>();
+            CreateMap<ApplicationUser, UserDto>();
         }
     }
 }

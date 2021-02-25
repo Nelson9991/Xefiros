@@ -53,7 +53,9 @@ namespace Xefiros.Client
 
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.AddApiAuthorization();
+            services.AddApiAuthorization()
+                .AddAccountClaimsPrincipalFactory<CustomUserFactory>();
+            services.AddOptions();
 
             services.AddScoped<DialogService>();
             services.AddScoped<NotificationService>();

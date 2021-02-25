@@ -1,0 +1,197 @@
+﻿@page "/ventas"
+@using System.Linq.Dynamic.Core
+@using System.Linq
+@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+@attribute [Authorize]
+
+<div class="row justify-content-between align-items-center">
+    <div class="col-auto">
+        <h2 class="text-radzen-secondary">Ventas</h2>
+    </div>
+    <div class="col-auto">
+        <RadzenButton Text="Registrar Venta" Icon="add" Click="@(() => NavigationManager.NavigateTo("ventas/crear"))"></RadzenButton>
+    </div>
+</div>
+
+<div class="row mt-4 justify-content-between">
+    <div class="col-auto">
+        <RadzenButton Text="Cargar Datos" ButtonStyle="@ButtonStyle.Info" Icon="update" Click="@(() => LimpiarFiltros())"></RadzenButton>
+    </div>
+    <div class="col-auto">
+        <RadzenDropDown AllowClear="false" Placeholder="10" TValue="int" Data="@(new List<int> {10, 25, 50, 100})" Change="@OnDropDownChange"></RadzenDropDown>
+    </div>
+    <div class="col-12">
+        <ListadoGenerico Listado="_ventasDto">
+            <HayRegistrosCompleto>
+                <RadzenGrid @ref="_dataGrid" Count="_totalCount" Data="_ventasDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" EqualsText="Igual" NotEqualsText="Diferente" LessThanText="Menor que" LessThanOrEqualsText="Menor o Igual" GreaterThanText="Mayor que" GreaterThanOrEqualsText="Mayor o igual" ClearFilterText="Limpiar" ApplyFilterText="Aplicar" EmptyText="No hay datos que mostrar" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="VentaDto" ColumnWidth="200px">
+                    <Columns>
+                        <RadzenGridColumn TItem="VentaDto" Property="UserName" Title="Usuario" />
+                        <RadzenGridColumn TItem="VentaDto" Width="255px" Property="Cliente.Nombres" Title="Cliente" Context="venta">
+                            <Template>
+                                @(venta.Cliente.Nombres + " " + venta.Cliente.Apellidos)
+                            </Template>
+                            <FilterTemplate>
+                                <label style="max-width: 14px !important; margin-right: 3px"><RadzenIcon Icon="search"></RadzenIcon></label>
+                                <RadzenTextBox Change="@((e) => FilterByNombreCliente(e))"></RadzenTextBox>
+                            </FilterTemplate>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="VentaDto" Property="Cliente.Cedula" Title="Cédula" />
+                        <RadzenGridColumn TItem="VentaDto" Property="TipoComprobante" Title="Tipo Comprobante" />
+                        <RadzenGridColumn TItem="VentaDto" Property="NumeroComprobante" Title="Numero Comprobante" />
+                        <RadzenGridColumn TItem="VentaDto" Property="FechaVenta" FormatString="{0:d}" Title="Fecha Venta"/>
+
+                        <RadzenGridColumn TItem="VentaDto" Property="Impuesto" FormatString="{0:P0}" Title="Impuesto" />
+                        <RadzenGridColumn TItem="VentaDto" Property="Total" FormatString="{0:C}" Title="Total" />
+                        <RadzenGridColumn TItem="VentaDto" Property="TotalAbonado" FormatString="{0:C}" Title="Total Abonado" />
+                        <RadzenGridColumn TItem="VentaDto" Property="CantidadPagar" FormatString="{0:C}" Title="Cantidad por Pagar" />
+                        <RadzenGridColumn TItem="VentaDto" Property="Estado" Title="Estado" />
+                        <RadzenGridColumn TItem="VentaDto" Context="venta" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                            <Template>
+                                <RadzenButton Icon="assignment" Size="@ButtonSize.Small" ButtonStyle="@ButtonStyle.Success" Text="Detalles Venta" Click="@(() => DialogService.OpenAsync<DetalleVentaDialog>("Detalles", new Dictionary<string, object>() {{"VentaId", venta.Id}}, new DialogOptions() {Width = "900px", Height = "400px"}))"></RadzenButton>
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="VentaDto" Context="venta" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                            <Template>
+                                <RadzenButton Icon="payments" ButtonStyle="@ButtonStyle.Success" Text="Detalles Abonos" Size="@ButtonSize.Small" Click="@(() => DialogService.OpenAsync<AbonosDialog>("Detalles", new Dictionary<string, object>() {{"VentaId", venta.Id}}, new DialogOptions() {Width = "615px", Height = "400px"}))"></RadzenButton>
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="VentaDto" Context="venta" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
+                            <Template>
+                                <RadzenButton Icon="edit" Click="@(() => NavigationManager.NavigateTo($"/ventas/editar/{venta.Id}"))"></RadzenButton>
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="VentaDto" Context="venta" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
+                            <Template>
+                                <RadzenButton Icon="delete" ButtonStyle="@ButtonStyle.Danger" Click="@(() => BorrarVenta(venta.Id))"></RadzenButton>
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </HayRegistrosCompleto>
+        </ListadoGenerico>
+    </div>
+</div>
+
+@code {
+    private List<VentaDto> _ventasDto;
+    private List<VentaDto> _ventasDtoFull = new();
+    private int _pageSize;
+    private int _totalCount;
+    private int _currentPage;
+    private RadzenGrid<VentaDto> _dataGrid;
+    private DateTime? _fiterDateTime;
+    private int _acumuladorRegistros;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
+    {
+        try
+        {
+            var includeProperties = "Cliente";
+            var url = $"api/ventas?pageIndex={pageIndex}&pageSize={pageSize}&includeProperties={includeProperties}";
+
+            var response = await HttpRepository.Get<ApiResponseDto<VentaDto>>(url);
+            if (response.Error)
+            {
+                await JsRuntime.ToastrFailure(await response.GetResponseBody());
+            }
+            else
+            {
+                _ventasDto = response.Response.DataResult;
+                _ventasDtoFull = response.Response.DataResult;
+                _pageSize = response.Response.PageSize;
+                _totalCount = response.Response.TotalCount;
+                _currentPage = response.Response.PageSize;
+
+                if (args is not null)
+                {
+                    var query = _ventasDto.AsQueryable();
+
+                    if (!string.IsNullOrEmpty(args.Filter))
+                    {
+                        query = query.Where(args.Filter);
+                    }
+
+                    if (!string.IsNullOrEmpty(args.OrderBy))
+                    {
+                        query = query.OrderBy(args.OrderBy);
+                    }
+                    _ventasDto = query.ToList();
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            await JsRuntime.ToastrFailure("Error al obtener los datos!");
+        }
+    }
+
+    private async Task OnDropDownChange(object value)
+    {
+        _pageSize = (int)value;
+        await LoadData(null, 0, _pageSize);
+        _dataGrid.GoToPage(0);
+    }
+
+    private void FilterByDate(DateTime? dateTime)
+    {
+        _ventasDto = _ventasDtoFull;
+        if (dateTime is not null)
+        {
+            _ventasDto = _ventasDto.Where(x => x.FechaVenta == dateTime).ToList();
+        }
+    }
+
+    private void LimpiarFiltros()
+    {
+        _ventasDto = _ventasDtoFull;
+        _dataGrid.Reset();
+    }
+
+    private void FilterByNombreCliente(string value)
+    {
+        _ventasDto = _ventasDtoFull;
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            _ventasDto = _ventasDto.Where(x => x.Cliente.Nombres.ToLower().Contains(value.ToLower()) || x.Cliente.Apellidos.ToLower().Contains(value.ToLower())).ToList();
+        }
+    }
+
+    private async Task BorrarVenta(int valueId)
+    {
+        try
+        {
+            var result = await JsRuntime.SwalConfirmation("¿Está seguro de borrar esta venta?");
+
+            if (result)
+            {
+                var httpResp = await HttpRepository.Delete<DataResponse<Venta>>($"api/ventas/{valueId}");
+
+                if (httpResp.Error)
+                {
+                    await JsRuntime.ToastrFailure(await httpResp.GetResponseBody() + "la venta ha borrar");
+                }
+                else
+                {
+                    await JsRuntime.ToastrSuccess("Venta borrada con éxito");
+                    _dataGrid.Reload();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            await JsRuntime.ToastrFailure("Error al borrar la venta!");
+        }
+    }
+
+}

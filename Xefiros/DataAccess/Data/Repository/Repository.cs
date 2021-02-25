@@ -46,7 +46,7 @@ namespace Xefiros.DataAccess.Data.Repository
             };
         }
 
-        public async Task<List<TResponse>> GetAll<TResponse>(Expression<Func<TSource, bool>> filter = null,
+        public async Task<List<TResponse>> GetAllNoPaging<TResponse>(Expression<Func<TSource, bool>> filter = null,
             Func<IQueryable<TSource>, IOrderedQueryable<TSource>> orderBy = null, string includeProperties = null)
         {
             IQueryable<TSource> query = DbSet;
@@ -76,7 +76,7 @@ namespace Xefiros.DataAccess.Data.Repository
             return _mapper.Map<List<TResponse>>(await query.ToListAsync());
         }
 
-        public async Task<ApiResponseDto<TResponse>> GetAll<TResponse>(
+        public async Task<ApiResponseDto<TResponse>> GetAllWithPaging<TResponse>(
             int pageIndex = 0,
             int pageSize = 10,
             string filterColumn = null,
@@ -145,7 +145,7 @@ namespace Xefiros.DataAccess.Data.Repository
                 return new DataResponse<TResponse>()
                 {
                     Sussces = false,
-                    Message = "No se encontro la venta"
+                    Message = "No se encontro el registro"
                 };
             }
 

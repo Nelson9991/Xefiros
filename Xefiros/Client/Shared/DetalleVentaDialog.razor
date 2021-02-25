@@ -1,0 +1,63 @@
+﻿@inject IHttpRepository HttpRepository
+@inject IJSRuntime JsRuntime
+@inject DialogService DialogService
+
+<h3 class="text-radzen-secondary">Detalles de la Venta</h3>
+
+<div class="row mt-3">
+	<div class="col-12">
+		<RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="5"
+		            AllowSorting="true" Data="@_detalles" TItem="DetalleVentaDto" ColumnWidth="150px">
+			<Columns>
+				<RadzenGridColumn TItem="DetalleVentaDto" Property="Cantidad" Title="Cantidad"/>
+
+				<RadzenGridColumn TItem="DetalleVentaDto" Property="Descripcion" Width="250px" Title="Descripción"/>
+				<RadzenGridColumn TItem="DetalleVentaDto" Property="PrecioUnitario" FormatString="{0:C}" Title="P. Unitario"/>
+				<RadzenGridColumn TItem="DetalleVentaDto" Property="Descuento" FormatString="{0:C}" Title="Descuento"/>
+				<RadzenGridColumn TItem="DetalleVentaDto" Property="Total" FormatString="{0:C}" Title="Total"/>
+			</Columns>
+		</RadzenGrid>
+	</div>
+</div>
+<div class="row mt-3 justify-content-between">
+	<div class="col-auto">
+		<RadzenButton Icon="arrow_back" Text="Regresar" ButtonStyle="@ButtonStyle.Danger" Click="@(() => DialogService.Close(false))"></RadzenButton>
+	</div>
+	<div class="col-auto">
+		<p class="mb-1">Subtotal: @_subtotalDetalles.ToString("C")</p>
+		<p class="mb-1">IVA @_impuesto.ToString("P0"): @_precioIva.ToString("C")</p>
+		<p class="mb-1">Total: @_totalDetalles.ToString("C")</p>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int VentaId { get; set; }
+
+	private List<DetalleVentaDto> _detalles = new();
+	private decimal _subtotalDetalles;
+	private decimal _totalDetalles;
+	private decimal _impuesto;
+	private decimal _precioIva;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var httpResp = await HttpRepository.Get<List<DetalleVentaDto>>($"api/ventas/{VentaId}/detalles");
+
+		if (httpResp.Error)
+		{
+			await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
+			DialogService.Close(false);
+		}
+		else
+		{
+			_detalles = httpResp.Response;
+			_impuesto = _detalles.Select(x => x.Impuesto).FirstOrDefault();
+			_subtotalDetalles = _detalles.Sum(x => x.Total);
+			_precioIva = (_subtotalDetalles * 0.12M);
+			_totalDetalles = _subtotalDetalles + _precioIva;
+		}
+	}
+
+}

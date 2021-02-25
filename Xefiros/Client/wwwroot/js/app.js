@@ -28,7 +28,7 @@ function showSwal(type, message, headingTitle){
 
 function activateLoading(){
 	Swal.fire({
-		text: 'Espere porfavor',
+		text: 'Espere por favor',
 		allowOutsideClick: false,
 		icon: 'info'
 	});

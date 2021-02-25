@@ -23,13 +23,26 @@
 	<div class="col-12">
 		<ListadoGenerico Listado="@_productosDto">
 			<HayRegistrosCompleto>
-				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_productosDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="ProductoDto">
+				<RadzenGrid @ref="_dataGrid" 
+				            Count="@_totalCount" 
+				            Data="@_productosDto" 
+				            LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" 
+				            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" 
+				            AllowPaging="true" 
+				            PageSize="@_pageSize" 
+				            AllowSorting="true" 
+				            TItem="ProductoDto" 
+				            ColumnWidth="170px">
 					<Columns>
-						<RadzenGridColumn TItem="ProductoDto" Property="Codigo" Title="Codigo" />
-						<RadzenGridColumn TItem="ProductoDto" Property="Nombre" Title="Nombre" />
-						<RadzenGridColumn TItem="ProductoDto" Context="column" Property="Precio" Title="Precio" FormatString="{0:C}" />
-						<RadzenGridColumn TItem="ProductoDto" Property="Stock" Title="Stock" />
-						<RadzenGridColumn TItem="ProductoDto" Property="Descripcion" Title="Descripción" />
+						<RadzenGridColumn TItem="ProductoDto" Property="Imagen" Title="Imagen" Sortable="false" Filterable="false">
+							<Template Context="prod">
+								<RadzenImage Path="@prod?.Imagen" Style="width:150px"/>
+							</Template>
+						</RadzenGridColumn>
+						<RadzenGridColumn TItem="ProductoDto" Property="Codigo" Title="Codigo"/>
+						<RadzenGridColumn TItem="ProductoDto" Property="Nombre" Title="Nombre" Width="235px"/>
+						<RadzenGridColumn TItem="ProductoDto" Context="column" Property="Precio" Title="Precio" FormatString="{0:C}"/>
+						<RadzenGridColumn TItem="ProductoDto" Property="Stock" Title="Stock" Width="120px"/>
 						<RadzenGridColumn TItem="ProductoDto" Context="producto" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center" Width="70px">
 							<Template>
 								<RadzenButton Icon="edit" Click="@(() => NavigationManager.NavigateTo($"/productos/editar/{producto.Id}"))"></RadzenButton>
