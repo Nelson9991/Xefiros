@@ -40,6 +40,6 @@ namespace Xefiros.DataAccess
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
         public DbSet<Abono> Abonos { get; set; }
-        public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     }
 }
