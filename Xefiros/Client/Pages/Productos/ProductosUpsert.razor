@@ -1,12 +1,9 @@
 ﻿@page "/productos/crear"
 @page "/productos/editar/{id:int}"
-@using System.IO
-@using Xefiros.Client.Services.IServices
-@using FileInfo = System.IO.FileInfo
-@using ButtonType = Radzen.ButtonType
 @inject IJSRuntime JsRuntime
 @inject IHttpRepository HttpRepository
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastNotificationService
 @inject IReadImage ReadImage
 @attribute [Authorize]
 
@@ -86,138 +83,138 @@
 
 @code {
 
-	[Parameter]
-	public int? Id { get; set; }
+    [Parameter]
+    public int? Id { get; set; }
 
-	private ProductoDto _productoDto = new();
-	private string _title = "Crear";
-	private bool _isImageUploadStarted;
-	private string _imagenBase64;
-	private string _imagenUrl;
-	private string _imageExtension;
-	private IJSInProcessRuntime _jsInProcessRuntime;
+    private ProductoDto _productoDto = new();
+    private string _title = "Crear";
+    private bool _isImageUploadStarted;
+    private string _imagenBase64;
+    private string _imagenUrl;
+    private string _imageExtension;
+    private IJSInProcessRuntime _jsInProcessRuntime;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
-		if (Id is not null)
-		{
-			_title = "Actualizar";
+    protected override async Task OnInitializedAsync()
+    {
+        _jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
+        if (Id is not null)
+        {
+            _title = "Actualizar";
 
-			var httpResp = await HttpRepository.Get<ProductoDto>($"api/productos/{Id.Value}");
+            var httpResp = await HttpRepository.Get<ProductoDto>($"api/productos/{Id.Value}");
 
-			if (httpResp.Error)
-			{
-				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
-			}
-			else
-			{
-				_productoDto = httpResp.Response;
-				if (!string.IsNullOrEmpty(_productoDto.Imagen))
-				{
-					_imagenBase64 = null;
-					_imagenUrl = _productoDto.Imagen;
-				}
-			}
-		}
-		else
-		{
-			_productoDto ??= new ProductoDto();
-		}
-	}
+            if (httpResp.Error)
+            {
+                ToastNotificationService.ShowError(await httpResp.GetResponseBody());
+            }
+            else
+            {
+                _productoDto = httpResp.Response;
+                if (!string.IsNullOrEmpty(_productoDto.Imagen))
+                {
+                    _imagenBase64 = null;
+                    _imagenUrl = _productoDto.Imagen;
+                }
+            }
+        }
+        else
+        {
+            _productoDto ??= new ProductoDto();
+        }
+    }
 
-	private async Task HandleImageUpload(InputFileChangeEventArgs e)
-	{
-		_isImageUploadStarted = true;
-		try
-		{
-			(bool succeded, string result) = await ReadImage.ReadImageAsync(e.File, e.File.Name);
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        _isImageUploadStarted = true;
+        try
+        {
+            (bool succeded, string result) = await ReadImage.ReadImageAsync(e.File, e.File.Name);
 
-			if (succeded)
-			{
-				_imagenBase64 = result;
-				_imagenUrl = null;
-				_imageExtension = Path.GetExtension(e.File.Name);
-			}
-			else
-			{
-				await JsRuntime.ToastrFailure(result);
-			}
-		}
-		catch (IOException ex)
-		{
-			Console.WriteLine(ex);
-			await JsRuntime.ToastrFailure("Solo se permiten subier imagenes de hasta 1MB!");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-			await JsRuntime.ToastrFailure("Error!");
-		}
-		_isImageUploadStarted = false;
-	}
+            if (succeded)
+            {
+                _imagenBase64 = result;
+                _imagenUrl = null;
+                _imageExtension = Path.GetExtension(e.File.Name);
+            }
+            else
+            {
+                ToastNotificationService.ShowError(result);
+            }
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine(ex);
+            ToastNotificationService.ShowError("Solo se permiten subier imagenes de hasta 1MB!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            ToastNotificationService.ShowError("Error!");
+        }
+        _isImageUploadStarted = false;
+    }
 
-	private async Task HandleUpsert()
-	{
-		try
-		{
-			if (string.IsNullOrEmpty(_imagenBase64))
-			{
-				_productoDto.Imagen = null;
-				_productoDto.ExtensionImagen = null;
-			}
-			else
-			{
-				_productoDto.Imagen = _imagenBase64;
-				_productoDto.ExtensionImagen = _imageExtension;
-			}
+    private async Task HandleUpsert()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_imagenBase64))
+            {
+                _productoDto.Imagen = null;
+                _productoDto.ExtensionImagen = null;
+            }
+            else
+            {
+                _productoDto.Imagen = _imagenBase64;
+                _productoDto.ExtensionImagen = _imageExtension;
+            }
 
-			var httpResponse = await HttpRepository.Get<bool>($"api/productos/existe/{_productoDto.Id}/{_productoDto.Codigo}");
+            var httpResponse = await HttpRepository.Get<bool>($"api/productos/existe/{_productoDto.Id}/{_productoDto.Codigo}");
 
-			var prodExist = httpResponse.Response;
+            var prodExist = httpResponse.Response;
 
-			if (prodExist)
-			{
-				await JsRuntime.ToastrFailure("Ya existe un producto registrado con el código ingresado");
-				return;
-			}
-			_jsInProcessRuntime.SwalShowLoading();
-			if (_productoDto.Id != 0 && Id is not null)
-			{
-				var updatedResult = await HttpRepository.Put<ProductoDto, DataResponse<string>>($"api/productos/editar/{Id.Value}", _productoDto);
+            if (prodExist)
+            {
+                ToastNotificationService.ShowError("Ya existe un producto registrado con el código ingresado");
+                return;
+            }
+            _jsInProcessRuntime.SwalShowLoading();
+            if (_productoDto.Id != 0 && Id is not null)
+            {
+                var updatedResult = await HttpRepository.Put<ProductoDto, DataResponse<string>>($"api/productos/editar/{Id.Value}", _productoDto);
 
-				if (updatedResult.Error)
-				{
-					var responseMessage = await updatedResult.GetResponseBody();
-					await JsRuntime.ToastrFailure(responseMessage);
-				}
-				else
-				{
-					_jsInProcessRuntime.SwalCloseLoading();
-					await JsRuntime.ToastrSuccess(updatedResult.Response.Message);
-					NavigationManager.NavigateTo("productos");
-				}
-			}
-			else
-			{
-				var response = await HttpRepository.Post("api/productos/crear", _productoDto);
-				if (response.Error)
-				{
-					await JsRuntime.ToastrFailure(await response.GetResponseBody());
-				}
-				else
-				{
-					_jsInProcessRuntime.SwalCloseLoading();
-					await JsRuntime.ToastrSuccess("Producto creado con éxito");
-					NavigationManager.NavigateTo("productos");
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			await JsRuntime.ToastrFailure("Error!");
-		}
-	}
+                if (updatedResult.Error)
+                {
+                    var responseMessage = await updatedResult.GetResponseBody();
+                    ToastNotificationService.ShowError(responseMessage);
+                }
+                else
+                {
+                    _jsInProcessRuntime.SwalCloseLoading();
+                    ToastNotificationService.ShowSuccess(updatedResult.Response.Message);
+                    NavigationManager.NavigateTo("productos");
+                }
+            }
+            else
+            {
+                var response = await HttpRepository.Post("api/productos/crear", _productoDto);
+                if (response.Error)
+                {
+                    ToastNotificationService.ShowSuccess(await response.GetResponseBody());
+                }
+                else
+                {
+                    _jsInProcessRuntime.SwalCloseLoading();
+                    ToastNotificationService.ShowSuccess("Producto creado con éxito");
+                    NavigationManager.NavigateTo("productos");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            ToastNotificationService.ShowSuccess("Error!");
+        }
+    }
 
 }

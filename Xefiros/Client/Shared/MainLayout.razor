@@ -1,24 +1,67 @@
 ﻿@inherits LayoutComponentBase
 
-<Layout Sider="true">
-	<LayoutSider>
-		<LayoutSiderContent>
-			<NavMenu></NavMenu>
-		</LayoutSiderContent>
-	</LayoutSider>
-	<Layout>
-		<LayoutHeader Fixed="true">
-			<Header></Header>
-		</LayoutHeader>
-		<LayoutContent>
-			<div class="px-4 pb-5 pt-3">
-				@Body
-			</div>
-		</LayoutContent>
-	</Layout>
-</Layout>
+<RadzenHeader class="bg-light">
+    <ChildContent>
+        <div class="row justify-content-start align-items-center">
+            <div class="col-6 d-flex align-items-center">
+                <RadzenSidebarToggle Click="@(args => { sidebarExpanded = !sidebarExpanded; bodyExpanded = !bodyExpanded; })">
+                </RadzenSidebarToggle>
+                <RadzenLabel Text="Distribuidora La Caserita">
+                </RadzenLabel>
+            </div>
+            <div class="col-6 d-flex align-items-center justify-content-end">
+                <div class="d-none d-md-inline-flex align-items-center pr-2">
+                    <LoginDisplay/>
+                </div>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenHeader>
+<div style="width: 100%">
+    <RadzenBody @ref="@body0" @bind-Expanded="@bodyExpanded">
+        <ChildContent>
+            <RadzenContentContainer Name="main">
+                @Body
+            </RadzenContentContainer>
+        </ChildContent>
+    </RadzenBody>
+</div>
+<RadzenSidebar @ref="@sidebar0" @bind-Expanded="@sidebarExpanded">
+    <ChildContent>
+        <RadzenPanelMenu>
+            <AuthorizeView>
+                <Authorized>
+                    <RadzenPanelMenuItem Text="Inicio" Icon="home" Path="/">
+                    </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Clientes" Icon="supervisor_account" Path="/clientes">
+                    </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Productos" Icon="carpenter" Path="/productos">
+                    </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Ventas" Icon="shopping_cart" Path="/ventas">
+                    </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Usuarios" Icon="account_box" Path="/usuarios">
+                    </RadzenPanelMenuItem>
+                </Authorized>
+            </AuthorizeView>
+        </RadzenPanelMenu>
+    </ChildContent>
+</RadzenSidebar>
+<RadzenFooter class="bg-light">
+    <ChildContent>
+        <RadzenLabel Text="Todos los derechos reservados &copy; 2021">
+        </RadzenLabel>
+    </ChildContent>
+</RadzenFooter>
 
 <RadzenDialog/>
-<RadzenNotification/>
+<RadzenNotification Style="position: absolute; top: 10px"/>
 <RadzenContextMenu/>
 <RadzenTooltip/>
+
+@code {
+    RadzenSidebar sidebar0;
+    RadzenBody body0;
+    bool sidebarExpanded = true;
+    bool bodyExpanded = false;
+
+}

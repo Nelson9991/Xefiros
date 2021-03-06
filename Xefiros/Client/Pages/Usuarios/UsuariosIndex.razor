@@ -3,128 +3,129 @@
 @inject IHttpRepository HttpRepository
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastNotificationService
 @attribute [Authorize]
 
 <div class="row justify-content-between align-items-center">
-	<div class="col-auto">
-		<h2 class="card-title text-radzen-secondary">Usuarios</h2>
-	</div>
-	<div class="col-auto">
-		<RadzenButton Icon="add" Text="Registrar Usuario" Click="@(() => NavigationManager.NavigateTo("/Identity/Account/Register", true))">
-		</RadzenButton>
-	</div>
+    <div class="col-auto">
+        <h2 class="card-title text-radzen-secondary">Usuarios</h2>
+    </div>
+    <div class="col-auto">
+        <RadzenButton Icon="add" Text="Registrar Usuario" Click="@(() => NavigationManager.NavigateTo("/Identity/Account/Register", true))">
+        </RadzenButton>
+    </div>
 </div>
 
 <div class="row mt-4">
-	<div class="col-12 text-right">
-		<RadzenDropDown AllowClear="false" Placeholder="10" TValue="int" Data="@(new List<int> {10, 25, 50, 100})" Change="@OnDropDownChange" />
-	</div>
-	<div class="col-12">
-		<ListadoGenerico Listado="@_usersDto">
-			<HayRegistrosCompleto>
-				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
-					<Columns>
-						<RadzenGridColumn TItem="UserDto" Property="UserName" Title="Email" />
-						<RadzenGridColumn TItem="UserDto" Property="Nombre" Title="Nombre" />
-						<RadzenGridColumn TItem="UserDto" Property="Apellidos" Title="Apellidos" />
-						<RadzenGridColumn TItem="UserDto" Title="Bloquear/Desbloquear" Context="user" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center">
-							<Template>
-								@if (user.LockoutEnd > DateTime.Now)
-								{
-									<RadzenButton Icon="lock" ButtonStyle="@ButtonStyle.Danger" Click="@(() => LockUnlock(user.Id))"></RadzenButton>
+    <div class="col-12 text-right">
+        <RadzenDropDown AllowClear="false" Placeholder="10" TValue="int" Data="@(new List<int> {10, 25, 50, 100})" Change="@OnDropDownChange" />
+    </div>
+    <div class="col-12">
+        <ListadoGenerico Listado="@_usersDto">
+            <HayRegistrosCompleto>
+                <RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
+                    <Columns>
+                        <RadzenGridColumn TItem="UserDto" Property="UserName" Title="Email" />
+                        <RadzenGridColumn TItem="UserDto" Property="Nombre" Title="Nombre" />
+                        <RadzenGridColumn TItem="UserDto" Property="Apellidos" Title="Apellidos" />
+                        <RadzenGridColumn TItem="UserDto" Title="Bloquear/Desbloquear" Context="user" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center">
+                            <Template>
+                                @if (user.LockoutEnd > DateTime.Now)
+                                {
+                                    <RadzenButton Icon="lock" ButtonStyle="@ButtonStyle.Danger" Click="@(() => LockUnlock(user.Id))"></RadzenButton>
 
-								}
-								else
-								{
-									<RadzenButton Icon="lock_open" ButtonStyle="@ButtonStyle.Success" Click="@(() => LockUnlock(user.Id))"></RadzenButton>
-								}
-							</Template>
-						</RadzenGridColumn>
-					</Columns>
-				</RadzenGrid>
-			</HayRegistrosCompleto>
-		</ListadoGenerico>
-	</div>
+                                }
+                                else
+                                {
+                                    <RadzenButton Icon="lock_open" ButtonStyle="@ButtonStyle.Success" Click="@(() => LockUnlock(user.Id))"></RadzenButton>
+                                }
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </HayRegistrosCompleto>
+        </ListadoGenerico>
+    </div>
 </div>
 
 @code {
-	private List<UserDto> _usersDto;
-	private int _pageSize;
-	private int _totalCount;
-	private int _currentPage;
-	private RadzenGrid<UserDto> _dataGrid;
+    private List<UserDto> _usersDto;
+    private int _pageSize;
+    private int _totalCount;
+    private int _currentPage;
+    private RadzenGrid<UserDto> _dataGrid;
 
-	protected override async Task OnInitializedAsync()
-	{
-		await LoadData();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
 
-	private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
-	{
-		var url = $"api/usuarios?pageIndex={pageIndex}&pageSize={pageSize}";
+    private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
+    {
+        var url = $"api/usuarios?pageIndex={pageIndex}&pageSize={pageSize}";
 
-		var response = await HttpRepository.Get<ApiResponseDto<UserDto>>(url);
+        var response = await HttpRepository.Get<ApiResponseDto<UserDto>>(url);
 
-		if (response.Error)
-		{
-			await JsRuntime.ToastrFailure(await response.GetResponseBody()); ;
-		}
-		else
-		{
-			_usersDto = response.Response.DataResult;
-			_pageSize = response.Response.PageSize;
-			_totalCount = response.Response.TotalCount;
-			_currentPage = response.Response.PageIndex;
+        if (response.Error)
+        {
+            ToastNotificationService.ShowError(await response.GetResponseBody());
+        }
+        else
+        {
+            _usersDto = response.Response.DataResult;
+            _pageSize = response.Response.PageSize;
+            _totalCount = response.Response.TotalCount;
+            _currentPage = response.Response.PageIndex;
 
-			if (args is not null)
-			{
-				var query = _usersDto.AsQueryable();
+            if (args is not null)
+            {
+                var query = _usersDto.AsQueryable();
 
-				if (!string.IsNullOrEmpty(args.Filter))
-				{
-					query = query.Where(args.Filter);
-				}
+                if (!string.IsNullOrEmpty(args.Filter))
+                {
+                    query = query.Where(args.Filter);
+                }
 
-				if (!string.IsNullOrEmpty(args.OrderBy))
-				{
-					query = query.OrderBy(args.OrderBy);
-				}
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                {
+                    query = query.OrderBy(args.OrderBy);
+                }
 
-				_usersDto = query.ToList();
+                _usersDto = query.ToList();
 
-				await InvokeAsync(StateHasChanged);
-			}
-		}
+                await InvokeAsync(StateHasChanged);
+            }
+        }
 
-	}
+    }
 
-	private async Task OnDropDownChange(object value)
-	{
-		_pageSize = (int)value;
-		await LoadData(null, 0, _pageSize);
-		_dataGrid.GoToPage(0);
-	}
+    private async Task OnDropDownChange(object value)
+    {
+        _pageSize = (int)value;
+        await LoadData(null, 0, _pageSize);
+        _dataGrid.GoToPage(0);
+    }
 
-	private async Task LockUnlock(string userId)
-	{
-		try
-		{
-			var httpResp = await HttpRepository.Post<string, DataResponse<string>>("api/usuarios/lockUnlock", userId);
+    private async Task LockUnlock(string userId)
+    {
+        try
+        {
+            var httpResp = await HttpRepository.Post<string, DataResponse<string>>("api/usuarios/lockUnlock", userId);
 
-			if (httpResp.Error)
-			{
-				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
-			}
-			else
-			{
-				await JsRuntime.ToastrSuccess(httpResp.Response.Message);
-				await LoadData();
-			}
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-		}
-	}
+            if (httpResp.Error)
+            {
+                ToastNotificationService.ShowError(await httpResp.GetResponseBody());
+            }
+            else
+            {
+                ToastNotificationService.ShowSuccess((httpResp.Response.Message));
+                await LoadData();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
 
 }

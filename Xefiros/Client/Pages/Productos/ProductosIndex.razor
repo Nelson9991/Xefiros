@@ -3,6 +3,7 @@
 @using Xefiros.Shared.Models
 @inject NavigationManager NavigationManager
 @inject IHttpRepository HttpRepository
+@inject IToastNotificationService ToastNotificationService
 @inject IJSRuntime JsRuntime
 @attribute [Authorize]
 
@@ -61,88 +62,88 @@
 </div>
 
 @code {
-	private List<ProductoDto> _productosDto;
-	private int _pageSize;
-	private int _totalCount;
-	private int _currentPage;
-	private RadzenGrid<ProductoDto> _dataGrid;
+    private List<ProductoDto> _productosDto;
+    private int _pageSize;
+    private int _totalCount;
+    private int _currentPage;
+    private RadzenGrid<ProductoDto> _dataGrid;
 
-	protected override async Task OnInitializedAsync()
-	{
-		await LoadData();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
 
-	private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
-	{
-		var url = $"api/productos?pageIndex={pageIndex}&pageSize={pageSize}";
+    private async Task LoadData(LoadDataArgs args = null, int pageIndex = 0, int pageSize = 10)
+    {
+        var url = $"api/productos?pageIndex={pageIndex}&pageSize={pageSize}";
 
-		var response = await HttpRepository.Get<ApiResponseDto<ProductoDto>>(url);
+        var response = await HttpRepository.Get<ApiResponseDto<ProductoDto>>(url);
 
-		if (response.Error)
-		{
-			Console.WriteLine("No se pudo obtener la informacion");
-		}
-		else
-		{
-			_productosDto = response.Response.DataResult;
-			_pageSize = response.Response.PageSize;
-			_totalCount = response.Response.TotalCount;
-			_currentPage = response.Response.PageIndex;
+        if (response.Error)
+        {
+            Console.WriteLine("No se pudo obtener la informacion");
+        }
+        else
+        {
+            _productosDto = response.Response.DataResult;
+            _pageSize = response.Response.PageSize;
+            _totalCount = response.Response.TotalCount;
+            _currentPage = response.Response.PageIndex;
 
-			if (args is not null)
-			{
-				var query = _productosDto.AsQueryable();
+            if (args is not null)
+            {
+                var query = _productosDto.AsQueryable();
 
-				if (!string.IsNullOrEmpty(args.Filter))
-				{
-					query = query.Where(args.Filter);
-				}
+                if (!string.IsNullOrEmpty(args.Filter))
+                {
+                    query = query.Where(args.Filter);
+                }
 
-				if (!string.IsNullOrEmpty(args.OrderBy))
-				{
-					query = query.OrderBy(args.OrderBy);
-				}
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                {
+                    query = query.OrderBy(args.OrderBy);
+                }
 
-				_productosDto = query.ToList();
+                _productosDto = query.ToList();
 
-				await InvokeAsync(StateHasChanged);
-			}
-		}
+                await InvokeAsync(StateHasChanged);
+            }
+        }
 
-	}
+    }
 
-	private async Task OnDropDownChange(object value)
-	{
-		_pageSize = (int)value;
-		await LoadData(null, 0, _pageSize);
-		_dataGrid.GoToPage(0);
-	}
+    private async Task OnDropDownChange(object value)
+    {
+        _pageSize = (int)value;
+        await LoadData(null, 0, _pageSize);
+        _dataGrid.GoToPage(0);
+    }
 
-	private async Task BorrarProducto(int prodId)
-	{
-		try
-		{
-			var result = await JsRuntime.SwalConfirmation("¿Está seguro de borrar este producto?");
+    private async Task BorrarProducto(int prodId)
+    {
+        try
+        {
+            var result = await JsRuntime.SwalConfirmation("¿Está seguro de borrar este producto?");
 
-			if (result)
-			{
-				var deletedResponse = await HttpRepository.Delete<DataResponse<Producto>>($"api/productos/{prodId}");
+            if (result)
+            {
+                var deletedResponse = await HttpRepository.Delete<DataResponse<Producto>>($"api/productos/{prodId}");
 
-				if (deletedResponse.Error)
-				{
-					await JsRuntime.ToastrFailure(deletedResponse.Response.Message);
-				}
-				else
-				{
-					_dataGrid.Reload();
-					await JsRuntime.ToastrSuccess("Producto " + deletedResponse.Response.Message);
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-		}
-	}
+                if (deletedResponse.Error)
+                {
+                    ToastNotificationService.ShowError(deletedResponse.Response.Message);
+                }
+                else
+                {
+                    _dataGrid.Reload();
+                    ToastNotificationService.ShowSuccess("Producto " + deletedResponse.Response.Message);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
 
 }

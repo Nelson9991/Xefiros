@@ -216,62 +216,62 @@ namespace Xefiros.DataAccess.Data.Repository
                 {
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-01-01"),
+                        Fecha = new DateTime(anioAnterior, 1, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 1).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-02-01"),
+                        Fecha = new DateTime(anioAnterior, 2, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 2).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-03-01"),
+                        Fecha = new DateTime(anioAnterior, 3, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 3).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-04-01"),
+                        Fecha = new DateTime(anioAnterior, 4, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 4).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-05-01"),
+                        Fecha = new DateTime(anioAnterior, 5, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 5).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-06-01"),
+                        Fecha = new DateTime(anioAnterior, 6, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 6).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-07-01"),
+                        Fecha = new DateTime(anioAnterior, 7, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 7).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-08-01"),
+                        Fecha = new DateTime(anioAnterior, 8, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 8).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-09-01"),
+                        Fecha = new DateTime(anioAnterior, 9, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 9).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-10-01"),
+                        Fecha = new DateTime(anioAnterior, 10, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 10).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-11-01"),
+                        Fecha = new DateTime(anioAnterior, 11, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 11).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioAnterior}-12-01"),
+                        Fecha = new DateTime(anioAnterior, 12, 1),
                         TotalVentas = ventasAnioAnterior.Where(x => x.FechaVenta.Month == 12).Sum(t => t.Total)
                     }
                 },
@@ -279,62 +279,62 @@ namespace Xefiros.DataAccess.Data.Repository
                 {
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-01-01"),
+                        Fecha = new DateTime(anioActual, 1, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 1).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-02-01"),
+                        Fecha = new DateTime(anioActual, 2, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 2).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-03-01"),
+                        Fecha = new DateTime(anioActual, 3, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 3).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-04-01"),
+                        Fecha = new DateTime(anioActual, 4, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 4).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-05-01"),
+                        Fecha = new DateTime(anioActual, 5, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 5).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-06-01"),
+                        Fecha = new DateTime(anioActual, 6, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 6).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-07-01"),
+                        Fecha = new DateTime(anioActual, 7, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 7).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-08-01"),
+                        Fecha = new DateTime(anioActual, 8, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 8).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-09-01"),
+                        Fecha = new DateTime(anioActual, 9, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 9).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-10-01"),
+                        Fecha = new DateTime(anioActual, 10, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 10).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-11-01"),
+                        Fecha = new DateTime(anioActual, 11, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 11).Sum(t => t.Total)
                     },
                     new ItemResumenAnualVenta
                     {
-                        Fecha = DateTime.Parse($"{anioActual}-12-01"),
+                        Fecha = new DateTime(anioActual, 12, 1),
                         TotalVentas = ventasAnioActual.Where(x => x.FechaVenta.Month == 12).Sum(t => t.Total)
                     }
                 }

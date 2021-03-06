@@ -5,7 +5,7 @@
 @attribute [Authorize]
 <div class="text-center">
     <h1 class="text-radzen-secondary mb-3">Bienvenido!</h1>
-    <p class="">
+    <p>
         Consulte sus ventas <a href="/ventas" class="nav-link d-inline-block px-0 mx-0">aquí</a>
     </p>
 </div>
@@ -20,7 +20,7 @@
 else
 {
     <div class="row pt-3">
-        <div class="col-6">
+        <div class="col-md-6 col-12">
             <h3 class="text-radzen-secondary mb-2 text-center">Resumen Trimestral de Ventas</h3>
             <RadzenChart>
                 <RadzenColumnSeries Data="@_resumenTrimestre" TItem="VentasTrimestreDto" Title="@($"Ventas {DateTime.Now.Year}")" CategoryProperty="Trimestre" ValueProperty="Ventas" LineType="LineType.Solid"/>
@@ -31,13 +31,13 @@ else
                 </RadzenValueAxis>
             </RadzenChart>
         </div>
-        <div class="col-6">
+        <div class="col-md-6 col-12">
             <h3 class="text-radzen-secondary mb-2 text-center">Resumen Ventas anuales</h3>
             <RadzenChart>
-                <RadzenLineSeries Smooth="true" Data="@_resumenVentasAnuales.AnioAnterior" CategoryProperty="Fecha" Title="@(DateTime.Now.AddYears(-1).Year.ToString())" LineType="LineType.Solid" ValueProperty="TotalVentas">
+                <RadzenLineSeries Data="@_resumenVentasAnuales.AnioAnterior" CategoryProperty="Fecha" Title="@(DateTime.Now.AddYears(-1).Year.ToString())" LineType="LineType.Solid" ValueProperty="TotalVentas">
                     <RadzenMarkers MarkerType="MarkerType.Circle"/>
                 </RadzenLineSeries>
-                <RadzenLineSeries Smooth="true" Data="_resumenVentasAnuales.AnioActual" CategoryProperty="Fecha" Title="@(DateTime.Now.Year.ToString())" ValueProperty="TotalVentas">
+                <RadzenLineSeries Data="_resumenVentasAnuales.AnioActual" CategoryProperty="Fecha" Title="@(DateTime.Now.Year.ToString())" ValueProperty="TotalVentas">
                     <RadzenMarkers MarkerType="MarkerType.Circle"/>
                 </RadzenLineSeries>
                 <RadzenCategoryAxis Padding="20" FormatString="{0:MMM}"/>

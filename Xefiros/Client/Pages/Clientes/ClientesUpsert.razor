@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject IHttpRepository HttpRepository
 @inject IJSRuntime JsRuntime
+@inject IToastNotificationService ToastNotificationService
 @attribute [Authorize]
 
 <h2 class="text-radzen-secondary mb-2">@_title Cliente</h2>
@@ -48,81 +49,81 @@
 
 @code {
 
-	[Parameter]
-	public int? Id { get; set; }
+    [Parameter]
+    public int? Id { get; set; }
 
-	private ClienteDto _clienteDto = new();
-	private string _title = "Crear";
-	private IJSInProcessRuntime _jsInProcessRuntime;
+    private ClienteDto _clienteDto = new();
+    private string _title = "Crear";
+    private IJSInProcessRuntime _jsInProcessRuntime;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
-		if (Id is not null)
-		{
-			_title = "Editar";
-			var httpResponse = await HttpRepository.Get<ClienteDto>($"api/clientes/{Id.Value}");
+    protected override async Task OnInitializedAsync()
+    {
+        _jsInProcessRuntime = (IJSInProcessRuntime) JsRuntime;
+        if (Id is not null)
+        {
+            _title = "Editar";
+            var httpResponse = await HttpRepository.Get<ClienteDto>($"api/clientes/{Id.Value}");
 
-			if (httpResponse.Error)
-			{
-				var responseMessage = await httpResponse.GetResponseBody();
-				NavigationManager.NavigateTo("clientes");
-				await JsRuntime.ToastrFailure(responseMessage);
-			}
-			else
-			{
-				_clienteDto = httpResponse.Response;
-			}
-		}
-		else
-		{
-			_clienteDto ??= new ClienteDto();
-		}
-	}
+            if (httpResponse.Error)
+            {
+                var responseMessage = await httpResponse.GetResponseBody();
+                NavigationManager.NavigateTo("clientes");
+                ToastNotificationService.ShowError(responseMessage);
+            }
+            else
+            {
+                _clienteDto = httpResponse.Response;
+            }
+        }
+        else
+        {
+            _clienteDto ??= new ClienteDto();
+        }
+    }
 
-	private async Task HandleUpsert()
-	{
-		try
-		{
-			var httpResponse = await HttpRepository.Get<bool>($"api/clientes/existe/{_clienteDto.Id}/{_clienteDto.Cedula}");
+    private async Task HandleUpsert()
+    {
+        try
+        {
+            var httpResponse = await HttpRepository.Get<bool>($"api/clientes/existe/{_clienteDto.Id}/{_clienteDto.Cedula}");
 
-			var clienteExists = httpResponse.Response;
+            var clienteExists = httpResponse.Response;
 
-			if (clienteExists)
-			{
-				await JsRuntime.ToastrFailure("Ya existe un cliente registrado con la cédula ingresada");
-				return;
-			}
-			_jsInProcessRuntime.SwalShowLoading();
-			if (_clienteDto.Id != 0 && Id != null)
-			{
-				var updatedResponse = await HttpRepository.Put<ClienteDto, DataResponse<string>>($"api/clientes/editar/{Id.Value}", _clienteDto);
+            if (clienteExists)
+            {
+                ToastNotificationService.ShowError("Ya existe un cliente registrado con la cédula ingresada");
+                return;
+            }
+            _jsInProcessRuntime.SwalShowLoading();
+            if (_clienteDto.Id != 0 && Id != null)
+            {
+                var updatedResponse = await HttpRepository.Put<ClienteDto, DataResponse<string>>($"api/clientes/editar/{Id.Value}", _clienteDto);
 
-				if (updatedResponse.Error)
-				{
-					var responseMessage = await updatedResponse.GetResponseBody();
-					await JsRuntime.ToastrFailure(responseMessage);
-				}
-				else
-				{
-					_jsInProcessRuntime.SwalCloseLoading();
-					await JsRuntime.ToastrSuccess(updatedResponse.Response.Message);
-				}
-			}
-			else
-			{
-				await HttpRepository.Post($"api/clientes/crear", _clienteDto);
-				_jsInProcessRuntime.SwalCloseLoading();
-				await JsRuntime.ToastrSuccess("Cliente registrado con éxito");
-			}
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			await JsRuntime.ToastrFailure("Error!");
-		}
+                if (updatedResponse.Error)
+                {
+                    var responseMessage = await updatedResponse.GetResponseBody();
+                    ToastNotificationService.ShowError(responseMessage);
+                }
+                else
+                {
+                    _jsInProcessRuntime.SwalCloseLoading();
+                    ToastNotificationService.ShowSuccess(updatedResponse.Response.Message);
+                }
+            }
+            else
+            {
+                await HttpRepository.Post($"api/clientes/crear", _clienteDto);
+                _jsInProcessRuntime.SwalCloseLoading();
+                ToastNotificationService.ShowSuccess("Cliente registrado con éxito");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            await JsRuntime.ToastrFailure("Error!");
+        }
 
-		NavigationManager.NavigateTo("clientes");
-	}
+        NavigationManager.NavigateTo("clientes");
+    }
 
 }

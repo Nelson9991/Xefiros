@@ -6,6 +6,7 @@
 @inject IHttpRepository HttpRepository
 @inject IJSRuntime JsRuntime
 @inject DialogService DialogService
+@inject IToastNotificationService ToastNotificationService
 @attribute [Authorize]
 
 <h2 class="text-radzen-secondary mb-2">@_title Venta</h2>
@@ -194,350 +195,348 @@
 
 @code {
 
-	[Parameter]
-	public int? Id { get; set; }
-	[CascadingParameter]
-	public Task<AuthenticationState> AuthenticationState { get; set; }
+    [Parameter]
+    public int? Id { get; set; }
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
 
-	private VentaCreateDto _ventaCreateDto = new();
-	private List<ClienteDropDownDto> _clientesList = new();
-	private List<DetalleVentaDto> _detallesVentaList = new();
-	private List<DetalleVentaDto> _detallesVentaParaEliminar = new();
-	private List<RegistroCantidadDto> _registroCantidadProds = new();
-	private List<ProductoForVentaDto> _productosSeleccionados = new();
-	private List<Abono> _abonosList = new();
-	private List<decimal> _subTotales = new();
-	private RadzenGrid<Abono> _abonosGrid;
-	private IJSInProcessRuntime _jsInProcessRuntime;
-	private decimal _totalVenta;
-	private decimal _totalAbonado;
-	private decimal _cantidadPagar;
-	private string _title = "Crear";
-	private RadzenGrid<DetalleVentaDto> _detallesGrid;
+    private VentaCreateDto _ventaCreateDto = new();
+    private List<ClienteDropDownDto> _clientesList = new();
+    private List<DetalleVentaDto> _detallesVentaList = new();
+    private List<DetalleVentaDto> _detallesVentaParaEliminar = new();
+    private List<RegistroCantidadDto> _registroCantidadProds = new();
+    private List<ProductoForVentaDto> _productosSeleccionados = new();
+    private List<Abono> _abonosList = new();
+    private List<decimal> _subTotales = new();
+    private RadzenGrid<Abono> _abonosGrid;
+    private IJSInProcessRuntime _jsInProcessRuntime;
+    private decimal _totalVenta;
+    private string _title = "Crear";
+    private RadzenGrid<DetalleVentaDto> _detallesGrid;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_jsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
-		_ventaCreateDto.Abonos = new List<Abono>();
-		_ventaCreateDto.Detalles = new List<DetalleVenta>();
-		try
-		{
-			var httpRespClientes = await HttpRepository.Get<List<ClienteDropDownDto>>("api/clientes/dropdown");
-			_clientesList = httpRespClientes.Response;
+    protected override async Task OnInitializedAsync()
+    {
+        _jsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+        _ventaCreateDto.Abonos = new List<Abono>();
+        _ventaCreateDto.Detalles = new List<DetalleVenta>();
+        try
+        {
+            var httpRespClientes = await HttpRepository.Get<List<ClienteDropDownDto>>("api/clientes/dropdown");
+            _clientesList = httpRespClientes.Response;
 
-			if (Id is not null)
-			{
-				_title = "Editar";
+            if (Id is not null)
+            {
+                _title = "Editar";
 
-				var httpRespVenta = await HttpRepository.Get<VentaCreateDto>($"api/ventas/upsert/{Id.Value}");
+                var httpRespVenta = await HttpRepository.Get<VentaCreateDto>($"api/ventas/upsert/{Id.Value}");
 
-				if (httpRespVenta.Error)
-				{
-					await JsRuntime.ToastrFailure(await httpRespVenta.GetResponseBody());
-				}
-				else
-				{
-					_ventaCreateDto = httpRespVenta.Response;
-					_abonosList = _ventaCreateDto.Abonos;
-				}
+                if (httpRespVenta.Error)
+                {
+                    ToastNotificationService.ShowError(await httpRespVenta.GetResponseBody());
+                }
+                else
+                {
+                    _ventaCreateDto = httpRespVenta.Response;
+                    _abonosList = _ventaCreateDto.Abonos;
+                }
 
-				var httpRespDetalles = await HttpRepository.Get<List<DetalleVentaDto>>($"api/ventas/{Id.Value}/detalles");
-				if (httpRespDetalles.Error)
-				{
-					await JsRuntime.ToastrFailure(await httpRespDetalles.GetResponseBody());
-				}
-				else
-				{
-					_detallesVentaList = httpRespDetalles.Response;
-					_registroCantidadProds = _detallesVentaList.Select(x => new RegistroCantidadDto()
-					{
-						ProductoId = x.ProductoId,
-						Cantidad = x.Cantidad
-					}).ToList();
-					_productosSeleccionados = _detallesVentaList.Select(x => new ProductoForVentaDto()
-					{
-						Cantidad = x.Cantidad,
-						Codigo = x.CodigoProducto,
-						Id = x.ProductoId,
-						Stock = x.StockProducto,
-						Nombre = x.Descripcion,
-						Precio = x.PrecioUnitario,
-					}).ToList();
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			await JsRuntime.ToastrFailure("Error al obtener los datos!");
-		}
-	}
+                var httpRespDetalles = await HttpRepository.Get<List<DetalleVentaDto>>($"api/ventas/{Id.Value}/detalles");
+                if (httpRespDetalles.Error)
+                {
+                    ToastNotificationService.ShowError(await httpRespDetalles.GetResponseBody());
+                }
+                else
+                {
+                    _detallesVentaList = httpRespDetalles.Response;
+                    _registroCantidadProds = _detallesVentaList.Select(x => new RegistroCantidadDto()
+                    {
+                        ProductoId = x.ProductoId,
+                        Cantidad = x.Cantidad
+                    }).ToList();
+                    _productosSeleccionados = _detallesVentaList.Select(x => new ProductoForVentaDto()
+                    {
+                        Cantidad = x.Cantidad,
+                        Codigo = x.CodigoProducto,
+                        Id = x.ProductoId,
+                        Stock = x.StockProducto,
+                        Nombre = x.Descripcion,
+                        Precio = x.PrecioUnitario,
+                    }).ToList();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            ToastNotificationService.ShowError("Error al obtener los datos!");
+        }
+    }
 
-	private EventCallback<List<ProductoForVentaDto>> OnAgregarProductos => new(null, (Action<List<ProductoForVentaDto>>)((productosSeleccionados) =>
-	{
+    private EventCallback<List<ProductoForVentaDto>> OnAgregarProductos => new(null, (Action<List<ProductoForVentaDto>>)((productosSeleccionados) =>
+    {
 
-		foreach (var productoSeleccionado in productosSeleccionados)
-		{
-			if (_detallesVentaList.FirstOrDefault(x => x.Descripcion.ToLower() == productoSeleccionado.Nombre.ToLower()) is null)
-			{
-				_detallesVentaList.Add(new DetalleVentaDto()
-				{
-					CodigoProducto = productoSeleccionado.Codigo,
-					Descripcion = productoSeleccionado.Nombre,
-					PrecioUnitario = productoSeleccionado.Precio,
-					StockProducto = productoSeleccionado.Stock,
-					ProductoId = productoSeleccionado.Id
+        foreach (var productoSeleccionado in productosSeleccionados)
+        {
+            if (_detallesVentaList.FirstOrDefault(x => x.Descripcion.ToLower() == productoSeleccionado.Nombre.ToLower()) is null)
+            {
+                _detallesVentaList.Add(new DetalleVentaDto()
+                {
+                    CodigoProducto = productoSeleccionado.Codigo,
+                    Descripcion = productoSeleccionado.Nombre,
+                    PrecioUnitario = productoSeleccionado.Precio,
+                    StockProducto = productoSeleccionado.Stock,
+                    ProductoId = productoSeleccionado.Id
 
-				});
+                });
 
-			}
-		}
+            }
+        }
 
-		if (_detallesVentaList.Count > productosSeleccionados.Count)
-		{
-			var listaTemp = _detallesVentaList;
-			foreach (var detalleVenta in listaTemp.ToList())
-			{
-				if (!productosSeleccionados.Exists(x => x.Id == detalleVenta.ProductoId))
-				{
-					if (_detallesVentaParaEliminar.Exists(x => x.Id == detalleVenta.Id))
-					{
-						_detallesVentaParaEliminar.Remove(detalleVenta);
-					}
-					_detallesVentaParaEliminar.Add(detalleVenta);
+        if (_detallesVentaList.Count > productosSeleccionados.Count)
+        {
+            var listaTemp = _detallesVentaList;
+            foreach (var detalleVenta in listaTemp.ToList())
+            {
+                if (!productosSeleccionados.Exists(x => x.Id == detalleVenta.ProductoId))
+                {
+                    if (_detallesVentaParaEliminar.Exists(x => x.Id == detalleVenta.Id))
+                    {
+                        _detallesVentaParaEliminar.Remove(detalleVenta);
+                    }
+                    _detallesVentaParaEliminar.Add(detalleVenta);
 
-					_detallesVentaList.Remove(detalleVenta);
+                    _detallesVentaList.Remove(detalleVenta);
 
-				}
-			}
-		}
+                }
+            }
+        }
 
-		_productosSeleccionados = productosSeleccionados;
-		_detallesGrid.Reload();
-	}));
+        _productosSeleccionados = productosSeleccionados;
+        _detallesGrid.Reload();
+    }));
 
-	private async Task OnCantidadChange(int cantidad, int stock)
-	{
-		if (stock - cantidad < 0)
-		{
-			await JsRuntime.ToastrFailure("Stock insuficiente");
-		}
-	}
+    private async Task OnCantidadChange(int cantidad, int stock)
+    {
+        if (stock - cantidad < 0)
+        {
+            ToastNotificationService.ShowError("Stock insuficiente");
+        }
+    }
 
-	private void EditRow(Abono abono)
-	{
-		_abonosGrid.EditRow(abono);
-	}
+    private void EditRow(Abono abono)
+    {
+        _abonosGrid.EditRow(abono);
+    }
 
-	private void OnUpdateRow(Abono abono)
-	{
-		if (_abonosList.Any(x => x.Id == abono.Id))
-		{
-			_abonosList.Remove(abono);
-		}
-		_abonosList.Add(abono);
-		_abonosGrid.Reload();
-	}
+    private void OnUpdateRow(Abono abono)
+    {
+        if (_abonosList.Any(x => x.Id == abono.Id))
+        {
+            _abonosList.Remove(abono);
+        }
+        _abonosList.Add(abono);
+        _abonosGrid.Reload();
+    }
 
-	private void SaveRow(Abono abono)
-	{
-		_abonosGrid.UpdateRow(abono);
-	}
+    private void SaveRow(Abono abono)
+    {
+        _abonosGrid.UpdateRow(abono);
+    }
 
-	private void CancelEdit(Abono abono)
-	{
-		_abonosGrid.CancelEditRow(abono);
-	}
+    private void CancelEdit(Abono abono)
+    {
+        _abonosGrid.CancelEditRow(abono);
+    }
 
-	private async Task DeleteRow(Abono abono)
-	{
-		_abonosList.Remove(abono);
-		if (abono.Id == 0)
-		{
-			_abonosGrid.Reload();
-		}
-		else
-		{
-			var httpResp = await HttpRepository.Delete($"api/ventas/abonos/{abono.Id}");
+    private async Task DeleteRow(Abono abono)
+    {
+        _abonosList.Remove(abono);
+        if (abono.Id == 0)
+        {
+            _abonosGrid.Reload();
+        }
+        else
+        {
+            var httpResp = await HttpRepository.Delete($"api/ventas/abonos/{abono.Id}");
 
-			if (httpResp.Error)
-			{
-				await JsRuntime.ToastrFailure(await httpResp.GetResponseBody());
-				_abonosGrid.CancelEditRow(abono);
-			}
-			else
-			{
-				_abonosGrid.Reload();
-			}
-		}
-	}
+            if (httpResp.Error)
+            {
+                ToastNotificationService.ShowError(await httpResp.GetResponseBody());
+                _abonosGrid.CancelEditRow(abono);
+            }
+            else
+            {
+                _abonosGrid.Reload();
+            }
+        }
+    }
 
-	private void InsertRow()
-	{
-		_abonosGrid.InsertRow(new Abono());
-	}
+    private void InsertRow()
+    {
+        _abonosGrid.InsertRow(new Abono());
+    }
 
-	private void OnCreateRow(Abono abono)
-	{
-		_abonosList.Add(abono);
+    private void OnCreateRow(Abono abono)
+    {
+        _abonosList.Add(abono);
 
-		_abonosGrid.Reload();
-	}
+        _abonosGrid.Reload();
+    }
 
-	private async Task HandleUpsert(EditContext editContext)
-	{
-		if (editContext.Validate())
-		{
+    private async Task HandleUpsert(EditContext editContext)
+    {
+        if (editContext.Validate())
+        {
 
 
-			if (_detallesVentaList.Count == 0)
-			{
-				await JsRuntime.SwalFailure("Debe ingresar almenos un detalle", "Error!");
-				return;
-			}
-			if (_abonosList.Count == 0)
-			{
-				await JsRuntime.SwalFailure("Debe ingresar almenos un abono", "Error!");
-				return;
-			}
+            if (_detallesVentaList.Count == 0)
+            {
+                await JsRuntime.SwalFailure("Debe ingresar almenos un detalle", "Error!");
+                return;
+            }
+            if (_abonosList.Count == 0)
+            {
+                await JsRuntime.SwalFailure("Debe ingresar almenos un abono", "Error!");
+                return;
+            }
 
-			var authState = await AuthenticationState;
+            var authState = await AuthenticationState;
 
 
-			try
-			{
-				_ventaCreateDto.Total = _totalVenta;
-				_ventaCreateDto.TotalAbonado = _abonosList.Sum(x => x.CantidadAbono);
-				_ventaCreateDto.CantidadPagar = _ventaCreateDto.Total - _ventaCreateDto.TotalAbonado;
-				_ventaCreateDto.Abonos = _abonosList;
+            try
+            {
+                _ventaCreateDto.Total = _totalVenta;
+                _ventaCreateDto.TotalAbonado = _abonosList.Sum(x => x.CantidadAbono);
+                _ventaCreateDto.CantidadPagar = _ventaCreateDto.Total - _ventaCreateDto.TotalAbonado;
+                _ventaCreateDto.Abonos = _abonosList;
 
-				_ventaCreateDto.Detalles = _detallesVentaList.Select(x => new DetalleVenta()
-				{
-					Total = (x.Cantidad * x.PrecioUnitario - x.Descuento),
-					Cantidad = x.Cantidad,
-					Descuento = x.Descuento,
-					Id = x.Id,
-					ProductoId = x.ProductoId,
-					Precio = x.PrecioUnitario,
-					VentaId = Id ?? 0
-				}).ToList();
+                _ventaCreateDto.Detalles = _detallesVentaList.Select(x => new DetalleVenta()
+                {
+                    Total = (x.Cantidad * x.PrecioUnitario - x.Descuento),
+                    Cantidad = x.Cantidad,
+                    Descuento = x.Descuento,
+                    Id = x.Id,
+                    ProductoId = x.ProductoId,
+                    Precio = x.PrecioUnitario,
+                    VentaId = Id ?? 0
+                }).ToList();
 
-				_jsInProcessRuntime.SwalShowLoading();
-				if (_ventaCreateDto.Id != 0 && Id is not null)
-				{
-					foreach (var detalleVentaDto in _detallesVentaList)
-					{
-						if (_registroCantidadProds.Exists(x => x.ProductoId == detalleVentaDto.ProductoId && x.Cantidad < detalleVentaDto.Cantidad))
-						{
+                _jsInProcessRuntime.SwalShowLoading();
+                if (_ventaCreateDto.Id != 0 && Id is not null)
+                {
+                    foreach (var detalleVentaDto in _detallesVentaList)
+                    {
+                        if (_registroCantidadProds.Exists(x => x.ProductoId == detalleVentaDto.ProductoId && x.Cantidad < detalleVentaDto.Cantidad))
+                        {
 
-							var cantidadDetalleOriginal = _registroCantidadProds.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
-							var cantidadDetalleActual = _ventaCreateDto.Detalles.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
-							if (cantidadDetalleActual > cantidadDetalleOriginal)
-							{
-								await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad - cantidadDetalleOriginal);
-							}
-						}
+                            var cantidadDetalleOriginal = _registroCantidadProds.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
+                            var cantidadDetalleActual = _ventaCreateDto.Detalles.First(x => x.ProductoId == detalleVentaDto.ProductoId).Cantidad;
+                            if (cantidadDetalleActual > cantidadDetalleOriginal)
+                            {
+                                await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad - cantidadDetalleOriginal);
+                            }
+                        }
 
-						if (_registroCantidadProds.FirstOrDefault(x => x.ProductoId == detalleVentaDto.ProductoId) is null)
-						{
-							await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
-						}
+                        if (_registroCantidadProds.FirstOrDefault(x => x.ProductoId == detalleVentaDto.ProductoId) is null)
+                        {
+                            await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
+                        }
 
-					}
+                    }
 
-					var httpRespUpdate = await HttpRepository.Put<VentaCreateDto, DataResponse<string>>($"api/ventas/editar/{Id.Value}", _ventaCreateDto);
+                    var httpRespUpdate = await HttpRepository.Put<VentaCreateDto, DataResponse<string>>($"api/ventas/editar/{Id.Value}", _ventaCreateDto);
 
-					if (httpRespUpdate.Error)
-					{
-						var responseMessage = await httpRespUpdate.GetResponseBody();
-						await JsRuntime.ToastrFailure(responseMessage);
-						return;
-					}
+                    if (httpRespUpdate.Error)
+                    {
+                        var responseMessage = await httpRespUpdate.GetResponseBody();
+                        ToastNotificationService.ShowError(responseMessage);
+                        return;
+                    }
 
-					if (_detallesVentaParaEliminar.Count > 0)
-					{
-						foreach (var detalleVentaDto in _detallesVentaParaEliminar)
-						{
-							await HttpRepository.Delete($"api/ventas/detalles/{detalleVentaDto.Id}");
-						}
-					}
+                    if (_detallesVentaParaEliminar.Count > 0)
+                    {
+                        foreach (var detalleVentaDto in _detallesVentaParaEliminar)
+                        {
+                            await HttpRepository.Delete($"api/ventas/detalles/{detalleVentaDto.Id}");
+                        }
+                    }
 
-					await JsRuntime.ToastrSuccess(httpRespUpdate.Response.Message);
+                    ToastNotificationService.ShowSuccess(httpRespUpdate.Response.Message);
 
-				}
-				else
-				{
-					_ventaCreateDto.UserId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier).Value;
-					_ventaCreateDto.UserName = authState.User.FindFirst(x => x.Type == ClaimTypes.Name).Value;
+                }
+                else
+                {
+                    _ventaCreateDto.UserId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier).Value;
+                    _ventaCreateDto.UserName = authState.User.FindFirst(x => x.Type == ClaimTypes.Name).Value;
 
-					var httpRespCreate = await HttpRepository.Post("api/ventas/crear", _ventaCreateDto);
+                    var httpRespCreate = await HttpRepository.Post("api/ventas/crear", _ventaCreateDto);
 
-					if (httpRespCreate.Error)
-					{
-						var responseMessage = await httpRespCreate.GetResponseBody();
-						await JsRuntime.ToastrFailure(responseMessage);
-						return;
-					}
+                    if (httpRespCreate.Error)
+                    {
+                        var responseMessage = await httpRespCreate.GetResponseBody();
+                        ToastNotificationService.ShowError(responseMessage);
+                        return;
+                    }
 
-					foreach (var detalleVentaDto in _detallesVentaList)
-					{
-						await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
+                    foreach (var detalleVentaDto in _detallesVentaList)
+                    {
+                        await HttpRepository.Post($"api/productos/disminuir-stock/{detalleVentaDto.ProductoId}", detalleVentaDto.Cantidad);
 
-					}
-					await JsRuntime.ToastrSuccess("Venta creada con éxito");
-				}
+                    }
+                    ToastNotificationService.ShowSuccess("Venta creada con éxito");
+                }
 
-				_jsInProcessRuntime.SwalCloseLoading();
-				NavigationManager.NavigateTo("ventas");
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex.Message);
-				await JsRuntime.ToastrFailure("Error al guardar los datos!");
-			}
-		}
-	}
+                _jsInProcessRuntime.SwalCloseLoading();
+                NavigationManager.NavigateTo("ventas");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                ToastNotificationService.ShowError("Error al guardar los datos!");
+            }
+        }
+    }
 
-	private void OnAbonoCantidadChange(decimal cantidad, Abono abono)
-	{
-		if (_abonosGrid.Data.Count() == 0)
-		{
-			if (cantidad > _totalVenta)
-			{
-				abono.CantidadAbono = _totalVenta;
-			}
-		}
-		else
-		{
-			if (_abonosGrid.Data.Count() == 1 && abono.Id > 0)
-			{
-				if (cantidad > _totalVenta)
-				{
-					abono.CantidadAbono = _totalVenta;
-				}
-			}
-			else
-			{
-				var abonosAnteriores = 0.0M;
+    private void OnAbonoCantidadChange(decimal cantidad, Abono abono)
+    {
+        if (_abonosGrid.Data.Count() == 0)
+        {
+            if (cantidad > _totalVenta)
+            {
+                abono.CantidadAbono = _totalVenta;
+            }
+        }
+        else
+        {
+            if (_abonosGrid.Data.Count() == 1 && abono.Id > 0)
+            {
+                if (cantidad > _totalVenta)
+                {
+                    abono.CantidadAbono = _totalVenta;
+                }
+            }
+            else
+            {
+                var abonosAnteriores = 0.0M;
 
-				if (_abonosGrid.Data.Any(x => x.CantidadAbono == abono.CantidadAbono))
-				{
-					abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono));
-				}
-				else
-				{
-					abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono) + abono.CantidadAbono);
-				}
+                if (_abonosGrid.Data.Any(x => x.CantidadAbono == abono.CantidadAbono))
+                {
+                    abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono));
+                }
+                else
+                {
+                    abonosAnteriores = _totalVenta - (_abonosGrid.Data.Sum(x => x.CantidadAbono) + abono.CantidadAbono);
+                }
 
-				if (abonosAnteriores < 0)
-				{
-					abono.CantidadAbono = abono.CantidadAbono + abonosAnteriores;
-				}
+                if (abonosAnteriores < 0)
+                {
+                    abono.CantidadAbono = abono.CantidadAbono + abonosAnteriores;
+                }
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
 }

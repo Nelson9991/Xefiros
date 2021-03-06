@@ -8,9 +8,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Blazorise;
-using Blazorise.Bootstrap;
-using Blazorise.Icons.FontAwesome;
 using Radzen;
 using Xefiros.Client.Data.Repository;
 using Xefiros.Client.Data.Repository.IRepository;
@@ -25,7 +22,6 @@ namespace Xefiros.Client
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
-
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddHttpClient<HttpClientConToken>(
@@ -37,18 +33,7 @@ namespace Xefiros.Client
 
             ConfigureServices(builder.Services);
 
-            builder.Services
-                .AddBlazorise(options => { options.ChangeTextOnKeyPress = true; })
-                .AddBootstrapProviders()
-                .AddFontAwesomeIcons();
-
-            var host = builder.Build();
-
-            host.Services
-                .UseBootstrapProviders()
-                .UseFontAwesomeIcons();
-
-            await host.RunAsync();
+            await builder.Build().RunAsync();
         }
 
         public static void ConfigureServices(IServiceCollection services)
@@ -63,7 +48,8 @@ namespace Xefiros.Client
             services.AddScoped<ContextMenuService>();
 
             services.AddScoped<IHttpRepository, HttpRepository>();
-            services.AddScoped<IReadImage, ReadImage>();
+            services.AddTransient<IReadImage, ReadImage>();
+            services.AddTransient<IToastNotificationService, ToastNotificationService>();
         }
     }
 }
