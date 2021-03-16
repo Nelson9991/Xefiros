@@ -19,6 +19,29 @@ namespace Xefiros.DataAccess.Data.Repository
             _mapper = mapper;
         }
 
+        public async Task<DataResponse<string>> EliminarUserAsync(string id)
+        {
+            var user = await _context.ApplicationUsers.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (user == null)
+            {
+                return new DataResponse<string>
+                {
+                    Sussces = false,
+                    Message = "No se encotró el usuario ha borrar"
+                };
+            }
+
+            _context.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return new DataResponse<string>
+            {
+                Sussces = true,
+                Message = "Usuario Eliminado con éxito"
+            };
+        }
+
         public async Task<DataResponse<string>> LockUnlockUserAsync(string id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);

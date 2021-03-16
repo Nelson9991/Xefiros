@@ -7,5 +7,6 @@ namespace Xefiros.DataAccess.Data.Repository.IRepository
     public interface IUsuarioRepository : IRepository<ApplicationUser>
     {
         public Task<DataResponse<string>> LockUnlockUserAsync(string id);
+        public Task<DataResponse<string>> EliminarUserAsync(string id);
     }
 }

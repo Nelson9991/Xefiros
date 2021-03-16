@@ -23,7 +23,7 @@
     <div class="col-12">
         <ListadoGenerico Listado="@_usersDto">
             <HayRegistrosCompleto>
-                <RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" EmptyText="No hay datos que mostrar"  AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
+                <RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" EmptyText="No hay datos que mostrar" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
                     <Columns>
                         <RadzenGridColumn TItem="UserDto" Property="UserName" Title="Email" />
                         <RadzenGridColumn TItem="UserDto" Property="Nombre" Title="Nombre" />
@@ -39,6 +39,19 @@
                                 {
                                     <RadzenButton Icon="lock_open" ButtonStyle="@ButtonStyle.Success" Click="@(() => LockUnlock(user.Id))"></RadzenButton>
                                 }
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="UserDto" Title="Eliminar" Context="user" Filterable="false" Sortable="false" TextAlign="@TextAlign.Center">
+                            <Template>
+                                @if (_usersDto.Count > 1)
+                                {
+                                    <RadzenButton Icon="delete" ButtonStyle="@ButtonStyle.Danger" Click="@(() => EliminarUsuario(user.Id))"></RadzenButton>
+                                }
+                                else
+                                {
+                                    <RadzenButton Icon="delete" ButtonStyle="@ButtonStyle.Danger" Disabled="true"></RadzenButton>
+                                }
+                                
                             </Template>
                         </RadzenGridColumn>
                     </Columns>
@@ -120,6 +133,34 @@
             {
                 ToastNotificationService.ShowSuccess((httpResp.Response.Message));
                 await LoadData();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    private async Task EliminarUsuario(string userId)
+    {
+
+        try
+        {
+            var result = await JsRuntime.SwalConfirmation("¿Está seguro de borrar este usuario?");
+
+            if (result)
+            {
+                var deletedResponse = await HttpRepository.Delete<DataResponse<string>>($"api/usuarios/{userId}");
+
+                if (deletedResponse.Error)
+                {
+                    ToastNotificationService.ShowError(deletedResponse.Response.Message);
+                }
+                else
+                {
+                    _dataGrid.Reload();
+                    ToastNotificationService.ShowSuccess(deletedResponse.Response.Message);
+                }
             }
         }
         catch (Exception e)

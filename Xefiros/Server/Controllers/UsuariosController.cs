@@ -45,5 +45,17 @@ namespace Xefiros.Server.Controllers
 
             return response;
         }
+
+        [HttpDelete("{userId}")]
+        public async Task<ActionResult<DataResponse<string>>> EliminarUser(string userId)
+        {
+            var response = await _unitOfWork.UsuarioRepository.EliminarUserAsync(userId);
+
+            if (!response.Sussces)
+            {
+                return NotFound(response.Message);
+            }
+            return response;
+        }
     }
 }

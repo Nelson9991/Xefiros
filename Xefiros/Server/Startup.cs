@@ -22,6 +22,7 @@ using Xefiros.Server.Helpers;
 using Xefiros.Server.Services;
 using Xefiros.Shared.Models;
 using System.Security.Claims;
+using Xefiros.Server.Services.IServices;
 
 namespace Xefiros.Server
 {
@@ -108,6 +109,8 @@ namespace Xefiros.Server
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            dbInitializer.Initialize();
 
             app.UseIdentityServer();
             app.UseAuthentication();

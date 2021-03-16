@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xefiros.DataAccess;
 using Xefiros.Server.Services;
+using Xefiros.Server.Services.IServices;
 using Xefiros.Shared.Models;
 
-namespace Xefiros.DataAccess.Services
+namespace Xefiros.Server.Services
 {
     public class DbInitializer : IDbInitializer
     {
@@ -49,6 +51,8 @@ namespace Xefiros.DataAccess.Services
             _userManager.CreateAsync(new ApplicationUser
             {
                 UserName = "admin@gmail.com",
+                Nombre = "WebMaster",
+                Apellidos = "N",
                 Email = "admin@gmail.com",
                 EmailConfirmed = true
             }, "Admin123*").GetAwaiter().GetResult();

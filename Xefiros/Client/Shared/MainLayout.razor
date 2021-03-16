@@ -1,20 +1,23 @@
 ﻿@inherits LayoutComponentBase
 
-<RadzenHeader class="bg-light">
+<RadzenHeader>
     <ChildContent>
-        <div class="row justify-content-start align-items-center">
-            <div class="col-6 d-flex align-items-center">
-                <RadzenSidebarToggle Click="@(args => { sidebarExpanded = !sidebarExpanded; bodyExpanded = !bodyExpanded; })">
-                </RadzenSidebarToggle>
-                <RadzenLabel Text="Distribuidora La Caserita">
-                </RadzenLabel>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light p-0 m-0">
+            <RadzenSidebarToggle class="mr-2" Click="@(args => { sidebarExpanded = !sidebarExpanded; bodyExpanded = !bodyExpanded; })">
+            </RadzenSidebarToggle>
+            <a href="/" class="text-dark" style="cursor:pointer;">
+                <RadzenLabel Text="Distribuidora La Caserita" Style="cursor:pointer;" />
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                </ul>
+                <LoginDisplay />
             </div>
-            <div class="col-6 d-flex align-items-center justify-content-end">
-                <div class="d-none d-md-inline-flex align-items-center pr-2">
-                    <LoginDisplay/>
-                </div>
-            </div>
-        </div>
+        </nav>
     </ChildContent>
 </RadzenHeader>
 <div style="width: 100%">
@@ -29,9 +32,13 @@
 <RadzenSidebar @ref="@sidebar0" @bind-Expanded="@sidebarExpanded">
     <ChildContent>
         <RadzenPanelMenu>
+            <p class="pb-2 mb-0 mx-3 mt-2 border-bottom">
+                <RadzenLabel Text="Menú" />
+            </p>
+
             <AuthorizeView>
                 <Authorized>
-                    <RadzenPanelMenuItem Text="Inicio" Icon="home" Path="/">
+                    <RadzenPanelMenuItem Text="Inicio" Icon="home" Path="/" class="mt-2">
                     </RadzenPanelMenuItem>
                     <RadzenPanelMenuItem Text="Clientes" Icon="supervisor_account" Path="/clientes">
                     </RadzenPanelMenuItem>
@@ -48,15 +55,15 @@
 </RadzenSidebar>
 <RadzenFooter class="bg-light">
     <ChildContent>
-        <RadzenLabel Text="Todos los derechos reservados &copy; 2021">
+        <RadzenLabel Text="Todos los derechos reservados &copy; 2021" Style="font-size:14px">
         </RadzenLabel>
     </ChildContent>
 </RadzenFooter>
 
-<RadzenDialog/>
-<RadzenNotification Style="position: absolute; top: 10px"/>
-<RadzenContextMenu/>
-<RadzenTooltip/>
+<RadzenDialog />
+<RadzenNotification Style="position: absolute; top: 10px" />
+<RadzenContextMenu />
+<RadzenTooltip />
 
 @code {
     RadzenSidebar sidebar0;
