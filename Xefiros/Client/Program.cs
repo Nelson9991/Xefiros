@@ -40,6 +40,12 @@ namespace Xefiros.Client
         {
             services.AddApiAuthorization()
                 .AddAccountClaimsPrincipalFactory<CustomUserFactory>();
+
+            services.AddMsalAuthentication(options =>
+            {
+                options.ProviderOptions.Cache.CacheLocation = "localStorage";
+            });
+
             services.AddOptions();
 
             services.AddScoped<DialogService>();

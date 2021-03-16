@@ -21,6 +21,7 @@ using Xefiros.DataAccess.Services.IServices;
 using Xefiros.Server.Helpers;
 using Xefiros.Server.Services;
 using Xefiros.Shared.Models;
+using System.Security.Claims;
 
 namespace Xefiros.Server
 {
