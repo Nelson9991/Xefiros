@@ -75,11 +75,12 @@ namespace Xefiros.Server
             services.AddSingleton<IConfigureOptions<MvcOptions>, ConfigureModelBindingLocalization>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFileUpload, AzureFileUpload>();
+            services.AddScoped<IDbInitializer, DbInitializer>();
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer)
         {
             var supportedCultures = new[] {"es-EC", "en-US", "es", "en"};
             var localizationOptions = new RequestLocalizationOptions().SetDefaultCulture(supportedCultures[2])

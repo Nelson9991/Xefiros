@@ -207,10 +207,10 @@ namespace Xefiros.DataAccess.Data.Repository
             var ventasAnioActual =
                 await _context.Ventas.Where(x => x.FechaVenta.Year == DateTime.Now.Year && x.Estado == "pagada")
                     .ToListAsync();
-            var anioAnterior = ventasAnioAnterior.Select(x => x.FechaVenta.Year).FirstOrDefault();
-            var anioActual = ventasAnioActual.Select(x => x.FechaVenta.Year).FirstOrDefault();
+            var anioAnterior = DateTime.Now.AddYears(-1).Year;
+            var anioActual = DateTime.Now.Year;
 
-            return new ResumenVentasAnualesDto()
+            var resumenVentas = new ResumenVentasAnualesDto()
             {
                 AnioAnterior = new List<ItemResumenAnualVenta>()
                 {
@@ -339,6 +339,8 @@ namespace Xefiros.DataAccess.Data.Repository
                     }
                 }
             };
+
+            return resumenVentas;
         }
     }
 }

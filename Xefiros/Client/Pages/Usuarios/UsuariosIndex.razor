@@ -23,7 +23,7 @@
     <div class="col-12">
         <ListadoGenerico Listado="@_usersDto">
             <HayRegistrosCompleto>
-                <RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
+                <RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_usersDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" EmptyText="No hay datos que mostrar"  AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="UserDto">
                     <Columns>
                         <RadzenGridColumn TItem="UserDto" Property="UserName" Title="Email" />
                         <RadzenGridColumn TItem="UserDto" Property="Nombre" Title="Nombre" />

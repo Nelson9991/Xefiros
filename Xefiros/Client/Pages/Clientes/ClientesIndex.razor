@@ -23,7 +23,7 @@
 	<div class="col-12">
 		<ListadoGenerico Listado="@_clientesDto">
 			<HayRegistrosCompleto>
-				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_clientesDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" AllowSorting="true" TItem="ClienteDto">
+				<RadzenGrid @ref="_dataGrid" Count="@_totalCount" Data="@_clientesDto" LoadData="@((e) => LoadData(e, _dataGrid.CurrentPage))" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="@_pageSize" EmptyText="No hay datos que mostrar"  AllowSorting="true" TItem="ClienteDto">
 					<Columns>
 						<RadzenGridColumn TItem="ClienteDto" Property="Nombres" Title="Nombres" />
 						<RadzenGridColumn TItem="ClienteDto" Property="Apellidos" Title="Apellidos" />
@@ -121,7 +121,7 @@
                 else
                 {
                     _dataGrid.Reload();
-                    ToastNotificationService.ShowError("Cliente " + deletedResponse.Response.Message);
+                    ToastNotificationService.ShowSuccess("Cliente " + deletedResponse.Response.Message);
                 }
             }
         }

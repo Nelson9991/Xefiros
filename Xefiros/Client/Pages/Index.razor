@@ -3,6 +3,7 @@
 @inject IHttpRepository HttpRepository
 @inject IJSRuntime JsRuntime
 @attribute [Authorize]
+
 <div class="text-center">
     <h1 class="text-radzen-secondary mb-3">Bienvenido!</h1>
     <p>
@@ -12,10 +13,7 @@
 
 @if (_resumenVentasPorTrimestre is null || _resumenVentasAnuales is null)
 {
-    <p>
-        Cargando...
-        <i class="fas fa-spinner fa-spin"></i>
-    </p>
+<p class="text-center">Registre su primera venta para consultar las estadisticas</p>
 }
 else
 {

@@ -33,7 +33,8 @@
 				            PageSize="@_pageSize" 
 				            AllowSorting="true" 
 				            TItem="ProductoDto" 
-				            ColumnWidth="170px">
+				            ColumnWidth="170px"
+                            EmptyText="No hay datos que mostrar" >
 					<Columns>
 						<RadzenGridColumn TItem="ProductoDto" Property="Imagen" Title="Imagen" Sortable="false" Filterable="false">
 							<Template Context="prod">
