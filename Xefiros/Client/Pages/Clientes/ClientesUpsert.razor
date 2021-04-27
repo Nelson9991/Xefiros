@@ -112,7 +112,6 @@
             }
             else
             {
-                await HttpRepository.Post($"api/clientes/crear", _clienteDto);
                 _jsInProcessRuntime.SwalCloseLoading();
                 ToastNotificationService.ShowSuccess("Cliente registrado con éxito");
             }
@@ -120,7 +119,7 @@
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
-            await JsRuntime.ToastrFailure("Error!");
+            ToastNotificationService.ShowError(e.Message);
         }
 
         NavigationManager.NavigateTo("clientes");
